@@ -21,6 +21,9 @@ parameters:
     description: Public network ID
     default: 6ea98324-0f14-49f6-97c0-885d1b8dc517
 
+  security_groups:
+    type: comma_delimited_list
+
 resources:
 
   internal_net:
@@ -87,7 +90,7 @@ resources:
       networks:
         - subnet_id: {get_resource: internal_snet}
       security_groups:
-        - { get_resource: security_group }
+        - { get_param: web_secgroup }
       user_data_format: RAW
       user_data:
         get_resource: server_init
@@ -316,3 +319,11 @@ outputs:
 
   web_scale_down:
     value: {get_attr: [web_scaledown_policy, alarm_url]}
+
+  first_address:
+    description: IP address of the first interface
+    value: {get_attr:  [server, first_address]}
+
+  server_id:
+    description: ID of the instance
+    value: {get_resource: instance}
