@@ -22,6 +22,7 @@ parameters:
     default: 6ea98324-0f14-49f6-97c0-885d1b8dc517
 
 resources:
+
   internal_net:
     type: OS::Neutron::Net
 
@@ -50,6 +51,25 @@ resources:
     properties:
       floating_network_id: {get_param: public_net_id}
       port_id: {get_attr: [web_lb_pool, vip, port_id]}
+
+  server:
+    type: OS::Nova::Server
+    properties:
+      flavor: {get_param: flavor}
+      image: {get_param: image}
+      key_name: {get_param: key_name}
+      networks:
+        - network: {get_param: network_id}
+      security_groups: {get_param: security_groups}
+      user_data_format: RAW
+      user_data: |
+        #!/bin/bash
+        mkdir /etc/ansible
+        echo "[local]" >> /etc/ansible/hosts
+        echo "127.0.0.1 ansible_connection=local" >> /etc/ansible/hosts
+        cd /root && git clone  https://github.com/mickaelremilien/CLOUDPATT.git
+        ansible-playbook root/image-factory/bundle-trusty-wordpress2/ansible/bootstrap.yml boot
+        rm -rf /root/boot
 
   web_secgroup:
     type: OS::Neutron::SecurityGroup
@@ -119,7 +139,7 @@ resources:
             - {get_resource: sql_secgroup}
 
   web_lb_pool:
-      depends_on: [sql_lb_pool]
+    depends_on: [sql_lb_pool]
     type: OS::Neutron::Pool
     properties:
       protocol: TCP
@@ -129,13 +149,6 @@ resources:
         protocol_port: 80
 
   web_lb_lb:
-    #type: srv_lb.yaml
-    #properties:
-    #  lb_pool: {get_resource: web_lb_pool}
-    #  network_id: {get_resource: internal_net}
-    #  lb_port: 80
-    #  security_groups:
-    #    - {get_resource: web_secgroup}
     type: OS::Neutron::LoadBalancer
     properties:
       protocol_port: 80
@@ -151,13 +164,6 @@ resources:
         protocol_port: 80
 
   sql_lb_lb:
-    #type: srv_lb.yaml
-    #properties:
-    #  lb_pool: {get_resource: sql_lb_pool}
-    #  network_id: { get_resource: internal_net }
-    #  lb_port: 80
-    #  security_groups:
-    #    - {get_resource: sql_secgroup}
     type: OS::Neutron::LoadBalancer
     properties:
       protocol_port: 80
