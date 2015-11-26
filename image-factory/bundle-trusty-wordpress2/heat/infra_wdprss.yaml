@@ -138,21 +138,7 @@ resources:
           security_groups:
             - {get_resource: sql_secgroup}
 
-  web_lb_pool:
-    depends_on: [sql_lb_pool]
-    type: OS::Neutron::Pool
-    properties:
-      protocol: TCP
-      subnet_id: {get_resource: internal_snet}
-      lb_method: ROUND_ROBIN
-      vip:
-        protocol_port: 80
 
-  web_lb_lb:
-    type: OS::Neutron::LoadBalancer
-    properties:
-      protocol_port: 80
-      pool_id: {get_resource: web_lb_pool}
 
   sql_lb_pool:
     type: OS::Neutron::Pool
@@ -168,6 +154,22 @@ resources:
     properties:
       protocol_port: 80
       pool_id: {get_resource: sql_lb_pool}
+
+  web_lb_pool:
+    depends_on: [sql_lb_pool]
+    type: OS::Neutron::Pool
+    properties:
+      protocol: TCP
+      subnet_id: {get_resource: internal_snet}
+      lb_method: ROUND_ROBIN
+      vip:
+        protocol_port: 80
+
+  web_lb_lb:
+    type: OS::Neutron::LoadBalancer
+    properties:
+      protocol_port: 80
+      pool_id: {get_resource: web_lb_pool}
 
   web_secgroup:
     type: OS::Neutron::SecurityGroup
