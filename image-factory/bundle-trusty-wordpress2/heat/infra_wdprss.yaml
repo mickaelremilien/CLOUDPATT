@@ -52,24 +52,45 @@ resources:
       floating_network_id: {get_param: public_net_id}
       port_id: {get_attr: [web_lb_pool, vip, port_id]}
 
+  floating_ip_link:
+    type: OS::Nova::FloatingIPAssociation
+    properties:
+      floating_ip: { get_resource: floating_ip }
+      server_id: { get_resource: server }
+
+  stack_public_entry_point:
+    type: OS::Heat::CloudConfig
+    properties:
+      cloud_config:
+        write_files:
+        - path: /etc/stack_public_entry_point
+          permissions: '0755'
+          content:
+            str_replace:
+              template: |
+                $floating_ip$
+              params:
+                $floating_ip$: { get_attr: [floating_ip, floating_ip_address] }
+
+  server_init:
+    type: OS::Heat::MultipartMime
+    properties:
+      parts:
+      - config: { get_resource: stack_public_entry_point }
+
   server:
     type: OS::Nova::Server
     properties:
-      flavor: {get_param: flavor}
-      image: {get_param: image}
-      key_name: {get_param: key_name}
+      key_name: { get_param: keypair_name }
+      image: $IMAGE$
+      flavor: { get_param: flavor_name }
       networks:
-        - network: {get_param: network_id}
-      security_groups: {get_param: security_groups}
+        - network: { get_resource: network }
+      security_groups:
+        - { get_resource: security_group }
       user_data_format: RAW
-      user_data: |
-        #!/bin/bash
-        mkdir /etc/ansible
-        echo "[local]" >> /etc/ansible/hosts
-        echo "127.0.0.1 ansible_connection=local" >> /etc/ansible/hosts
-        cd /root && git clone  https://github.com/mickaelremilien/CLOUDPATT.git
-        ansible-playbook root/image-factory/bundle-trusty-wordpress2/ansible/bootstrap.yml boot
-        rm -rf /root/boot
+      user_data:
+        get_resource: server_init
 
   web_secgroup:
     type: OS::Neutron::SecurityGroup
