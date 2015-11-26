@@ -85,7 +85,7 @@ resources:
       image: $IMAGE$
       flavor: { get_param: flavor_name }
       networks:
-        - network: { get_resource: network }
+        - network: { get_resource: subnet_id }
       security_groups:
         - { get_resource: security_group }
       user_data_format: RAW
