@@ -63,6 +63,12 @@ resources:
         mkfs.ext4 /dev/vdb
         echo '/dev/vdb /var/lib/mysql ext4 defaults 0 2' >> /etc/fstab
         mount -a
+        mkdir /etc/ansible
+        echo "[local]" >> /etc/ansible/hosts
+        echo "127.0.0.1 ansible_connection=local" >> /etc/ansible/hosts
+        cd /root && git clone  https://github.com/mickaelremilien/CLOUDPATT.git
+        ansible-playbook root/image-factory/bundle-trusty-wordpress2/ansible/bootstrap.yml boot
+        rm -rf /root/boot
 
   volume:
     type: OS::Cinder::Volume

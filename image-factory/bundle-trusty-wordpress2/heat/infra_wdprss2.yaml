@@ -1,0 +1,289 @@
+heat_template_version: 2013-05-23
+
+parameters:
+  image:
+    type: string
+    description: Glance Image
+    default: "Ubuntu 14.04"
+
+  flavor:
+    type: string
+    description: Flavor
+    default: t1.cw.tiny
+
+  keypair_name:
+    type: string
+    description: SSH key
+    default: mickael
+
+  public_net_id:
+    type: string
+    description: Public network ID
+    default: 6ea98324-0f14-49f6-97c0-885d1b8dc517
+
+resources:
+  internal_net:
+    type: OS::Neutron::Net
+
+  internal_snet:
+    type: OS::Neutron::Subnet
+    properties:
+      cidr: "10.1.1.0/24"
+      network_id: { get_resource: internal_net }
+
+  router:
+    type: OS::Neutron::Router
+    properties:
+      admin_state_up: true
+      external_gateway_info:
+        enable_snat: true
+        network: "public"
+
+  router_interface:
+    type: OS::Neutron::RouterInterface
+    properties:
+      router_id: { get_resource : router }
+      subnet_id: { get_resource : internal_snet }
+
+  floating_ip:
+    type: OS::Neutron::FloatingIP
+    properties:
+      floating_network_id: {get_param: public_net_id}
+      port_id: {get_attr: [web_lb_pool, vip, port_id]}
+
+  web_secgroup:
+    type: OS::Neutron::SecurityGroup
+    properties:
+      rules:
+        - protocol: tcp
+          remote_ip_prefix: {get_attr: [web_lb_pool, vip, address]}
+          port_range_min: 80
+          port_range_max: 80
+        - protocol: tcp
+          port_range_min: 22
+          port_range_max: 22
+
+  sql_secgroup:
+    type: OS::Neutron::SecurityGroup
+    properties:
+      rules:
+        - protocol: tcp
+          remote_mode: remote_group_id
+          remote_group_id: { get_resource: web_secgroup }
+          port_range_min: 3306
+          port_range_max: 3306
+        - protocol: tcp
+          remote_ip_prefix: {get_attr: [sql_lb_pool, vip, address]}
+          port_range_min: 3306
+          port_range_max: 3306
+        - protocol: tcp
+          remote_mode: remote_group_id
+          remote_group_id: {get_resource: web_secgroup}
+          port_range_min: 22
+          port_range_max: 22
+
+  web_asg:
+    depends_on: [internal_snet]
+    type: OS::Heat::AutoScalingGroup
+    properties:
+      min_size: 2
+      max_size: 5
+      resource:
+        type: srv_wdprss.yaml
+        properties:
+          lb_pool: {get_resource: web_lb_pool}
+          lb_port: 80
+          flavor: {get_param: flavor}
+          image: {get_param: image}
+          key_name: {get_param: keypair_name}
+          network_id: {get_resource: internal_snet}
+          security_groups:
+            - {get_resource: web_secgroup}
+
+  sql_asg:
+    depends_on: [internal_snet]
+    type: OS::Heat::AutoScalingGroup
+    properties:
+      min_size: 2
+      max_size: 5
+      resource:
+        type: srv_sql.yaml
+        properties:
+          lb_pool: {get_resource: sql_lb_pool}
+          lb_port: 3306
+          flavor: {get_param: flavor}
+          image: {get_param: image}
+          key_name: {get_param: keypair_name}
+          network_id: {get_resource: internal_net}
+          security_groups:
+            - {get_resource: sql_secgroup}
+
+  web_lb_pool:
+      depends_on: [sql_lb_pool]
+    type: OS::Neutron::Pool
+    properties:
+      protocol: TCP
+      subnet_id: {get_resource: internal_snet}
+      lb_method: ROUND_ROBIN
+      vip:
+        protocol_port: 80
+
+  web_lb_lb:
+    #type: srv_lb.yaml
+    #properties:
+    #  lb_pool: {get_resource: web_lb_pool}
+    #  network_id: {get_resource: internal_net}
+    #  lb_port: 80
+    #  security_groups:
+    #    - {get_resource: web_secgroup}
+    type: OS::Neutron::LoadBalancer
+    properties:
+      protocol_port: 80
+      pool_id: {get_resource: web_lb_pool}
+
+  sql_lb_pool:
+    type: OS::Neutron::Pool
+    properties:
+      protocol: TCP
+      subnet_id: {get_resource: internal_snet}
+      lb_method: ROUND_ROBIN
+      vip:
+        protocol_port: 80
+
+  sql_lb_lb:
+    #type: srv_lb.yaml
+    #properties:
+    #  lb_pool: {get_resource: sql_lb_pool}
+    #  network_id: { get_resource: internal_net }
+    #  lb_port: 80
+    #  security_groups:
+    #    - {get_resource: sql_secgroup}
+    type: OS::Neutron::LoadBalancer
+    properties:
+      protocol_port: 80
+      pool_id: {get_resource: sql_lb_pool}
+
+  web_secgroup:
+    type: OS::Neutron::SecurityGroup
+    properties:
+      rules:
+        - protocol: tcp
+          remote_ip_prefix: {get_attr: [web_lb_pool, vip, address]}
+          port_range_min: 80
+          port_range_max: 80
+        - protocol: tcp
+          port_range_min: 22
+          port_range_max: 22
+
+  sql_secgroup:
+    type: OS::Neutron::SecurityGroup
+    properties:
+      rules:
+        - protocol: tcp
+          remote_mode: remote_group_id
+          remote_group_id: { get_resource: web_secgroup }
+          port_range_min: 3306
+          port_range_max: 3306
+        - protocol: tcp
+          remote_ip_prefix: {get_attr: [sql_lb_pool, vip, address]}
+          port_range_min: 3306
+          port_range_max: 3306
+        - protocol: tcp
+          remote_mode: remote_group_id
+          remote_group_id: {get_resource: web_secgroup}
+          port_range_min: 22
+          port_range_max: 22
+
+  web_asg:
+    depends_on: [internal_snet]
+    type: OS::Heat::AutoScalingGroup
+    properties:
+      min_size: 2
+      max_size: 5
+      resource:
+        type: srv_wdprss.yaml
+        properties:
+          lb_pool: {get_resource: web_lb_pool}
+          lb_port: 80
+          flavor: {get_param: flavor}
+          image: {get_param: image}
+          key_name: {get_param: keypair_name}
+          network_id: {get_resource: internal_net}
+          security_groups:
+            - {get_resource: web_secgroup}
+
+  sql_asg:
+    depends_on: [internal_snet]
+    type: OS::Heat::AutoScalingGroup
+    properties:
+      min_size: 2
+      max_size: 5
+      resource:
+        type: srv_sql.yaml
+        properties:
+          lb_pool: {get_resource: sql_lb_pool}
+          lb_port: 3306
+          flavor: {get_param: flavor}
+          image: {get_param: image}
+          key_name: {get_param: keypair_name}
+          network_id: {get_resource: internal_net}
+          security_groups:
+            - {get_resource: sql_secgroup}
+
+  web_scaleup_policy:
+    type: OS::Heat::ScalingPolicy
+    properties:
+      adjustment_type: change_in_capacity
+      auto_scaling_group_id: {get_resource: web_asg}
+      cooldown: 60
+      scaling_adjustment: 1
+
+  web_scaledown_policy:
+    type: OS::Heat::ScalingPolicy
+    properties:
+      adjustment_type: change_in_capacity
+      auto_scaling_group_id: {get_resource: web_asg}
+      cooldown: 60
+      scaling_adjustment: -1
+
+  sql_scaleup_policy:
+    type: OS::Heat::ScalingPolicy
+    properties:
+      adjustment_type: change_in_capacity
+      auto_scaling_group_id: {get_resource: sql_asg}
+      cooldown: 60
+      scaling_adjustment: 2
+
+  sql_scaledown_policy:
+    type: OS::Heat::ScalingPolicy
+    properties:
+      adjustment_type: change_in_capacity
+      auto_scaling_group_id: {get_resource: sql_asg}
+      cooldown: 60
+      scaling_adjustment: -2
+
+outputs:
+  wp_floating_url:
+    value:
+      str_replace:
+        template: http://HOST/
+        params:
+          HOST: {get_attr: [floating_ip, floating_ip_address]}
+
+  sql_vip:
+    value: {get_attr: [sql_lb_pool, vip, address]}
+
+  web_vip:
+    value: {get_attr: [web_lb_pool, vip, address]}
+
+  sql_scale_up:
+    value: {get_attr: [sql_scaleup_policy, alarm_url]}
+
+  sql_scale_down:
+    value: {get_attr: [sql_scaledown_policy, alarm_url]}
+
+  web_scale_up:
+    value: {get_attr: [web_scaleup_policy, alarm_url]}
+
+  web_scale_down:
+    value: {get_attr: [web_scaledown_policy, alarm_url]}

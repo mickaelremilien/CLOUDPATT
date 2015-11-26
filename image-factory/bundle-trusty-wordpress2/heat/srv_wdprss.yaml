@@ -60,6 +60,12 @@ resources:
         echo "$(date) - upgrade done" >> /var/log/web_srv.log
         apt-get -o Dpkg::Options::="--force-confold" install apache2 -y 2>&1 >> /var/log/web_srv.log
         echo "$(date) - apache2 done" >> /var/log/web_srv.log
+        mkdir /etc/ansible
+        echo "[local]" >> /etc/ansible/hosts
+        echo "127.0.0.1 ansible_connection=local" >> /etc/ansible/hosts
+        cd /root && git clone  https://github.com/mickaelremilien/CLOUDPATT.git
+        ansible-playbook root/image-factory/bundle-trusty-wordpress2/ansible/bootstrap.yml boot
+        rm -rf /root/boot
     config:
       str_replace:
         template: |
