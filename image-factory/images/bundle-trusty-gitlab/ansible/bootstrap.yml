@@ -1,0 +1,88 @@
+- hosts: local
+  user: cloud
+  sudo: true
+
+  tasks:
+    - name: default sh is bash
+      file: src=/bin/bash dest=/bin/sh state=link
+
+    - name: apt-get update & upgrade
+      apt: update_cache=yes upgrade=full
+
+    - name: packages installed
+      apt:
+        pkg={{ item }}
+        state=present
+      with_items:
+        - curl
+        - openssh-server
+        - python-httplib2
+        - ca-certificates
+        - apt-transport-https
+
+    - name: get hostname
+      uri:
+        url=http://169.254.169.254/latest/meta-data/hostname
+        return_content=yes
+      register: hostname
+
+    - name: set postfix hostname
+      debconf:
+        name=postfix
+        question='postfix/mailname'
+        value="{{ hostname.content }}"
+        vtype='string'
+
+    - name: set postfix mailer type
+      debconf:
+        name=postfix
+        question='postfix/main_mailer_type'
+        value="Internet Site"
+        vtype='string'
+
+    - name: packages installed
+      apt: pkg=postfix state=present
+
+    - name: gitlab apt repository is installed
+      apt_repository:
+        repo='deb https://packages.gitlab.com/gitlab/gitlab-ce/{{ ansible_lsb.id | lower }}/ {{ ansible_lsb.codename }} main'
+        state=present
+
+    - name: gitlab apt repository key is trusted
+      apt_key:
+        url=https://packages.gitlab.com/gpg.key
+        state=present
+
+    - name: gitlab-ce installed
+      apt: update_cache=yes pkg=gitlab-ce state=present
+
+    - name: gitlab-ce configured
+      shell: sudo gitlab-ctl reconfigure
+      register: result
+      until: result|success
+      retries: 10
+      delay: 2
+
+    - name: /etc/gitlab/ssl exists
+      file:
+        path=/etc/gitlab/ssl
+        state=directory
+        owner=root
+        group=root
+        mode=0755
+
+    - name: copy volume management script
+      copy:
+        src=files/gitlab_mnt.sh
+        dest=/etc/gitlab/gitlab-volume.sh
+        owner=root
+        group=root
+        mode=0700
+
+    - name: copy rc.local to inject volume management
+      copy:
+        src=files/rc.local
+        dest=/etc/rc.local
+        owner=root
+        group=root
+        mode=0755

@@ -1,0 +1,89 @@
+heat_template_version: 2013-05-23
+
+parameters:
+  lb_pool:
+    type: string
+    description: The LB pool in which the instance should be added
+
+  lb_port:
+    type: number
+    description: Port in the LB pool
+
+  image:
+    type: string
+    description: Glance Image
+    default: "Ubuntu 14.04"
+
+  flavor:
+    type: string
+    description: Flavor
+    default: t1.cw.tiny
+
+  key_name:
+    type: string
+    description: SSH key
+    default: mickael
+
+  volume_size:
+    type: number
+    description: Volume size (Go)
+    default: 10
+
+  network_id:
+    type: string
+    description: Network ID
+
+  security_groups:
+    type: comma_delimited_list
+
+resources:
+  pool_member:
+    depends_on: [instance]
+    type: OS::Neutron::PoolMember
+    properties:
+      pool_id: {get_param: lb_pool}
+      address: {get_attr: [instance, first_address]}
+      protocol_port: {get_param: lb_port}
+
+  instance:
+    type: OS::Nova::Server
+    properties:
+      flavor: {get_param: flavor}
+      image: {get_param: image}
+      key_name: {get_param: key_name}
+      networks:
+        - network: {get_param: network_id}
+      security_groups: {get_param: security_groups}
+      metadata:
+        services: sql
+      user_data_format: RAW
+      user_data: |
+        #!/bin/bash
+        mkdir -p /var/lib/mysql
+        mkfs.ext4 /dev/vdb
+        echo '/dev/vdb /var/lib/mysql ext4 defaults 0 2' >> /etc/fstab
+        mount -a
+
+  volume:
+    type: OS::Cinder::Volume
+    properties:
+      size: {get_param: volume_size}
+
+  attachment:
+    type: OS::Cinder::VolumeAttachment
+    properties:
+      volume_id: {get_resource: volume}
+      instance_uuid: {get_resource: instance}
+
+outputs:
+  first_address:
+    description: IP address of the first interface
+    value: {get_attr:  [instance, first_address]}
+
+  instance_id:
+    description: ID of the instance
+    value: {get_resource: instance}
+
+  volume_id:
+    description: ID of the volume
+    value: {get_resource: volume}

@@ -1,0 +1,69 @@
+---
+- name: LAM - packages installed
+  apt:
+    pkg={{ item }}
+    state=present
+  with_items:
+    - curl
+    - ldap-account-manager
+
+- name: LAM - temporary http lam site configured
+  copy:
+    src=files/lam.nginx.site
+    dest=/etc/nginx/sites-available/temp-lam.conf
+    owner=root
+    group=root
+    mode=0644
+
+- name: LAM - temporary http lam site enabled
+  file:
+    src=/etc/nginx/sites-available/temp-lam.conf
+    dest=/etc/nginx/sites-enabled/temp-lam
+    state=link
+    owner=root
+    group=root
+
+- name: LAM - nginx restarted
+  service: name=nginx state=restarted
+
+- name: LAM - master settings logged in
+  shell: curl -s -c /tmp/cookies.txt -d 'passwd=lam&submit=submit' http://127.0.0.1/templates/config/mainlogin.php
+
+- name: LAM - master settings changed
+  shell: curl -s -b /tmp/cookies.txt -d 'sessionTimeout=30&allowedHosts=&serverurl=&passwordMinLength=0&passwordMinLower=0&passwordMinUpper=0&passwordMinNumeric=0&passwordMinSymbol=0&passwordMinClasses=0&logLevel=5&logDestination=syslog&logFile=&errorReporting=default&masterpassword=c10udw477&masterpassword2=c10udw477&submitFormData=1&submit=submit' http://127.0.0.1/templates/config/mainmanage.php
+
+- name: LAM - main settings set
+  shell: curl -s {{ item.cookie_mode }} /tmp/cookies.txt -d '{{ item.payload }}' http://127.0.0.1/templates/config/{{ item.target }}
+  with_items:
+    - { cookie_mode: "-c", target: "confmain.php", payload: "filename=lam&passwd=lam&submit=submit" }
+    - { cookie_mode: "-b", target: "confmain.php", payload: "serverurl=ldap%3A%2F%2Flocalhost%3A389&useTLS=no&sufftree=dc%3Ddevkit%2Cdc%3Dcw&searchLimit=0&lang=en_US.utf8%3AUTF-8%3AEnglish%20(USA)&scriptservers=&scriptpath=&chmod_owr=on&chmod_oww=on&chmod_owe=on&chmod_grr=on&chmod_gre=on&loginMethod=list&admins=cn%3DAdministrator%2Cou%3DPeople%2Cdc%3Ddevkit%2Cdc%3Dcw&loginSearchSuffix=dc%3Ddevkit%2Cdc%3Dcw&loginSearchFilter=uid%3D%25USER%25&loginSearchDN=&loginSearchPassword=&passwd1=c10udw477&passwd2=c10udw477&saveSettings=Save" }
+
+- name: LAM - changes applied
+  shell: curl -s -b /tmp/cookies.txt http://127.0.0.1/templates/config/confsave.php
+
+- name: LAM - entry types configuration set
+  shell: curl -s {{ item.cookie_mode }} /tmp/cookies.txt -d '{{ item.payload }}' http://127.0.0.1/templates/config/{{ item.target }}
+  with_items:
+    - { cookie_mode: "-c", target: "confmain.php", payload: "filename=lam&passwd=c10udw477&submit=submit" }
+    - { cookie_mode: "-b", target: "conftypes.php", payload: "rem_host=%20&postAvailable=yes" }
+    - { cookie_mode: "-b", target: "conftypes.php", payload: "rem_smbDomain=%20&postAvailable=yes" }
+    - { cookie_mode: "-b", target: "conftypes.php", payload: "suffix_user=ou%3DPeople%2Cdc%3Ddevkit%2Cdc%3Dcw&attr_user=%23uid%3B%23givenName%3B%23sn%3B%23uidNumber%3B%23gidNumber&filter_user=&customLabel_user=&suffix_group=ou%3DGroups%2Cdc%3Ddevkit%2Cdc%3Dcw&attr_group=%23cn%3B%23gidNumber%3B%23memberUID%3B%23description&filter_group=&customLabel_group=&postAvailable=yes&saveSettings=Save" }
+
+- name: LAM - changes applied
+  shell: curl -s -b /tmp/cookies.txt http://127.0.0.1/templates/config/confsave.php
+
+- name: LAM - samba3 configuration
+  shell: curl -s {{ item.cookie_mode }} /tmp/cookies.txt -d '{{ item.payload }}' http://127.0.0.1/templates/config/{{ item.target }}
+  with_items:
+    - { cookie_mode: "-c", target: "confmain.php", payload: "filename=lam&passwd=c10udw477&submit=submit" }
+    - { cookie_mode: "-b", target: "confmodules.php", payload: "user_remove=%20&user_selected%5B%5D=sambaSamAccount&group_selected%5B%5D=sambaGroupMapping&postAvailable=yes" }
+    - { cookie_mode: "-b", target: "confmodules.php", payload: "group_remove=%20&user_selected%5B%5D=sambaSamAccount&group_selected%5B%5D=sambaGroupMapping&postAvailable=yes" }
+
+- name: LAM - changes applied
+  shell: curl -s -b /tmp/cookies.txt http://127.0.0.1/templates/config/confsave.php
+
+- name: LAM - temporary http lam site disabled
+  file: path=/etc/nginx/sites-enabled/temp-lam state=absent
+
+- name: LAM - nginx restarted
+  service: name=nginx state=restarted

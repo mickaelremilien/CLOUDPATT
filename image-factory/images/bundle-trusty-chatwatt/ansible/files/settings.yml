@@ -1,0 +1,66 @@
+env: production # development / production
+
+http:
+  enable: true
+  host: 'localhost'
+  port: 5000
+
+https:
+  enable: false
+  # port: 5001
+  # key: key.pem
+  # cert: certificate.pem
+
+files:
+  enable: true
+  provider: local
+  local:
+    dir: uploads
+  maxFileSize: 100000000
+  restrictTypes: false
+  # allowedTypes:
+  #   - 'image/*'
+  #   - 'text/*'
+  #   - 'application/xml'
+  #   - 'application/atom+xml'
+  #   - 'application/msword'
+  #   - 'application/vnd.ms-powerpoint'
+  #   - 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'
+  #   - 'application/json'
+  #   - 'application/zip'
+  #   - 'application/x-7z-compressed'
+  #   - 'application/x-rar-compressed'
+
+xmpp:
+  enable: false
+  # port: 5222
+  # domain: example.com
+
+database:
+  uri: mongodb://localhost/letschat
+
+secrets:
+  cookie: secretsauce
+
+auth:
+  throttling:
+    enable: true
+    threshold: 5
+  providers: [local]
+  local:
+    enableRegistration: true
+    passwordRegex: ^.{4,64}$
+
+giphy:
+  enable: true
+  rating: pg-13
+  # limit: 24
+  # apiKey: dc6zaTOxFJmzC
+
+rooms:
+  private: false
+
+private:
+  enable: false
+  roster: all # online / all
+  expire: 360 # false or number of minutes

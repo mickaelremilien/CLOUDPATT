@@ -1,0 +1,11 @@
+.DS_Store
+target
+.idea
+*.iml
+*.ipr
+*.iws
+*.old
+.urchin.log
+.urchin_stdout
+.current-run.env.sh
+*.tmp

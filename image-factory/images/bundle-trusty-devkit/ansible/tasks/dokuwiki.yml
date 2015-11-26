@@ -1,0 +1,94 @@
+---
+
+- name: Dokuwiki - packages installed
+  apt: pkg={{ item }} state=present
+  with_items:
+    - curl
+    - unzip
+
+- name: Dokuwiki - /var/www/ exists
+  file:
+    path=/var/www/
+    state=directory
+    owner=root
+    group=root
+    mode=0755
+
+- name: Dokuwiki - Checking for existing installation
+  stat: path=/var/www/dokuwiki
+  register: doku_present
+
+- name: Dokuwiki - download tar
+  when: not doku_present.stat.exists
+  get_url:
+    url=http://download.dokuwiki.org/src/dokuwiki/dokuwiki-stable.tgz
+    dest=/var/www/dokuwiki-stable.tgz
+    mode=0644
+
+- name: Dokuwiki - unpack tar
+  when: not doku_present.stat.exists
+  unarchive:
+    src=/var/www/dokuwiki-stable.tgz
+    dest=/var/www/
+    copy=no
+
+- name: Dokuwiki - delete tar
+  when: not doku_present.stat.exists
+  file:
+    path=/var/www/dokuwiki-stable.tgz
+    state=absent
+
+- name: Dokuwiki - rename dokuwiki directory
+  when: not doku_present.stat.exists
+  shell: mv /var/www/dokuwiki-*/ /var/www/dokuwiki
+
+- name: Dokuwiki - dokuwiki configured for ldap
+  copy:
+    src=files/local.protected.php
+    dest=/var/www/dokuwiki/conf/local.protected.php
+    owner=root
+    group=root
+    mode=0644
+
+- name: Dokuwiki - Checking for existing installation
+  stat: path=/var/www/dokuwiki/lib/plugins/authldaplocal
+  register: doku_ldap
+
+- name: Dokuwiki - download authldaplocal.zip
+  when: not doku_ldap.stat.exists
+  get_url:
+    url=https://codeload.github.com/sploadie/authldaplocal/zip/master
+    dest=/var/www/dokuwiki/lib/plugins/authldaplocal.zip
+    mode=0644
+
+- name: Dokuwiki - unzip authldaplocal.zip
+  when: not doku_ldap.stat.exists
+  unarchive:
+    src=/var/www/dokuwiki/lib/plugins/authldaplocal.zip
+    dest=/var/www/dokuwiki/lib/plugins/
+    copy=no
+
+- name: Dokuwiki - delete authldaplocal.zip
+  when: not doku_ldap.stat.exists
+  file: state=absent path=/var/www/dokuwiki/lib/plugins/authldaplocal.zip
+
+- name: Dokuwiki - rename authldaplocal directory
+  when: not doku_ldap.stat.exists
+  shell: mv /var/www/dokuwiki/lib/plugins/authldaplocal-master /var/www/dokuwiki/lib/plugins/authldaplocal
+
+# - name: Dokuwiki - presence of authldaplocal plugin enforced
+#   shell: sudo echo "\$plugins['authldaplocal'] = 1;" >> /var/www/dokuwiki/conf/plugins.required.php
+
+- name: Dokuwiki - presence of authldaplocal plugin enforced
+  lineinfile:
+    dest=/var/www/dokuwiki/conf/plugins.required.php
+    line="$plugins['authldaplocal'] = 1;"
+    insertafter=EOF
+
+- name: Dokuwiki - dokuwiki has correct ownership
+  file:
+    path=/var/www/dokuwiki
+    state=directory
+    owner=www-data
+    group=www-data
+    recurse=yes

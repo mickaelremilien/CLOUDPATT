@@ -1,0 +1,56 @@
+{
+    "variables": {
+        "source_image": "unknown",
+        "image_name": "unknown",
+        "user": "cloud",
+        "playbook": "bootstrap.yml",
+        "factory_network": "{{ env `FACTORY_NETWORK_ID` }}",
+        "factory_security_group": "{{ env `FACTORY_SECURITY_GROUP` }}"
+    },
+    "builders": [
+        {
+            "type": "openstack",
+            "ssh_username": "{{ user `user` }}",
+            "flavor": "16",
+            "image_name": "{{ user `image_name` }}",
+            "source_image": "{{ user `source_image` }}",
+            "security_groups": "{{ user `factory_security_group` }}",
+            "networks": "{{ user `factory_network` }}",
+            "use_floating_ip": "true",
+            "floating_ip_pool": "6ea98324-0f14-49f6-97c0-885d1b8dc517",
+            "communicator": "ssh",
+            "ssh_pty": true,
+            "ssh_timeout": "10m",
+            "ssh_handshake_attempts": 50
+        }
+    ],
+    "provisioners": [
+        {
+            "type": "shell",
+            "inline": [
+                "sudo DEBIAN_FRONTEND=noninteractive apt-get dist-upgrade -y",
+                "sudo DEBIAN_FRONTEND=noninteractive apt-get update",
+                "sudo DEBIAN_FRONTEND=noninteractive apt-get purge python-openssl -y",
+                "sudo DEBIAN_FRONTEND=noninteractive apt-get upgrade -y",
+                "sudo DEBIAN_FRONTEND=noninteractive apt-get install aptitude git python-dev python-setuptools libffi-dev libssl-dev -y",
+                "sudo easy_install pip",
+                "sudo ln -s /usr/local/bin/pip /usr/bin/pip",
+                "sudo pip install -U pyopenssl ndg-httpsclient pyasn1",
+                "sudo pip install ansible"
+            ]
+        },
+        {
+            "type": "ansible-local",
+            "playbook_dir": "ansible",
+            "playbook_file": "ansible/{{ user `playbook` }}",
+            "inventory_file": "ansible/inventory",
+            "extra_arguments": "-vvv"
+        },
+        {
+            "type": "shell",
+            "inline": [
+                "sudo apt-get clean -y"
+            ]
+        }
+    ]
+}

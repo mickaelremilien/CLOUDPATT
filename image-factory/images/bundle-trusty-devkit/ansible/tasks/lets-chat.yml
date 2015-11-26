@@ -1,0 +1,78 @@
+---
+- name: Let's Chat - curl installed
+  apt: pkg="{{ item }}" state=present
+  with_items:
+    - curl
+    - lsb-release
+    - apt-transport-https
+    - git
+
+- name: Let's Chat - nodejs apt repo key
+  apt_key: url=https://deb.nodesource.com/gpgkey/nodesource.gpg.key state=present
+
+- name: Let's Chat - nodejs apt repository
+  apt_repository: repo='deb https://deb.nodesource.com/node_4.x {{ ansible_lsb.codename }} main' state=present
+
+- name: Let's Chat - nodejs apt src repository
+  apt_repository: repo='deb-src https://deb.nodesource.com/node_4.x {{ ansible_lsb.codename }} main' state=present
+
+- name: Let's Chat - mongodb repository key trusted
+  shell: sudo apt-key adv --keyserver hkp://keyserver.ubuntu.com:80 --recv 7F0CEB10
+
+- name: Let's Chat - mongodb repository added
+  apt_repository: repo='deb http://repo.mongodb.org/apt/ubuntu {{ ansible_lsb.codename }}/mongodb-org/3.0 multiverse' state=present
+
+- name: Let's Chat - packages installed
+  apt: pkg="{{ item }}" state=present update_cache=yes
+  with_items:
+    - mongodb-org
+    - nodejs
+    - build-essential
+
+- name: Let's Chat - Let's Chat github cloned
+  git:
+    dest=/var/lib/lets-chat
+    repo=https://github.com/sdelements/lets-chat.git
+    force=yes
+
+- name: Let's Chat - Let's Chat installed
+  shell: sudo npm install
+  args:
+    chdir: /var/lib/lets-chat
+  register: result
+  until: result|success
+  retries: 3
+  delay: 2
+
+- name: Let's Chat - Plugin lets-chat-ldap installed
+  shell: sudo npm install lets-chat-ldap
+  args:
+    chdir: /var/lib/lets-chat
+
+- name: Let's Chat - Settings file added
+  copy:
+    src=files/lets-chat-settings.yml
+    dest=/var/lib/lets-chat/settings.yml
+    owner=root
+    group=root
+    mode=0644
+
+- name: Let's Chat - mongodb started
+  service: name=mongod state=started enabled=yes
+
+- name: Let's Chat - lets-chat user exists
+  user:
+    name=lets-chat
+    system=yes
+    state=present
+
+- name: Let's Chat - lets-chat init script added
+  copy:
+    src=files/lets-chat.conf
+    dest=/etc/init/lets-chat.conf
+    owner=root
+    group=root
+    mode=0644
+
+- name: Let's Chat - lets-chat started
+  service: name=lets-chat state=started enabled=yes

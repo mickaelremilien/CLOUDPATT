@@ -1,0 +1,107 @@
+- hosts: local
+  user: cloud
+  sudo: true
+
+  vars:
+    # some_role:
+    #   var_name: var_value
+
+  tasks:
+    - name: default sh is bash
+      file: src=/bin/bash dest=/bin/sh state=link
+
+    - name: apt-get update & upgrade
+      apt: update_cache=yes upgrade=full
+
+    - name: packages installed
+      apt: pkg={{ item }} state=present
+      with_items:
+        - nginx
+        - php5-fpm
+
+    - name: nginx started
+      service: name=nginx state=started
+    - name: nginx enabled
+      service: name=nginx enabled=yes
+
+    - name: php5-fpm started
+      service: name=php5-fpm state=started
+    - name: php5-fpm enabled
+      service: name=php5-fpm enabled=yes
+
+    - name: nginx default disabled
+      file: path=/etc/nginx/sites-enabled/default state=absent
+    - name: restart nginx
+      service: name=nginx state=restarted
+
+    - name: installing LDAP
+      include: tasks/ldap.yml
+
+    - name: installing LAM
+      include: tasks/lam.yml
+
+    - name: installing GitLab
+      include: tasks/gitlab.yml
+
+    - name: installing Dokuwiki
+      include: tasks/dokuwiki.yml
+
+    - name: installing Jenkins
+      include: tasks/jenkins.yml
+
+    - name: installing Let's Chat
+      include: tasks/lets-chat.yml
+
+    - name: nginx configuration
+      copy:
+        src=files/nginx.conf
+        dest=/etc/nginx/nginx.conf
+        owner=root
+        group=root
+        mode=0644
+    - name: nginx site configuration
+      copy:
+        src=files/devkit.nginx.site
+        dest=/etc/nginx/sites-available/devkit.conf
+        owner=root
+        group=root
+        mode=0644
+    - name: nginx site enabled
+      file:
+        src=/etc/nginx/sites-available/devkit.conf
+        dest=/etc/nginx/sites-enabled/devkit
+        state=link
+        owner=root
+        group=root
+    - name: restart nginx
+      service: name=nginx state=restarted
+
+    - name: /etc/devkit exists
+      file:
+        path=/etc/devkit
+        state=directory
+        owner=root
+        group=root
+        mode=0755
+    - name: copy volume management script
+      copy:
+        src=files/devkit_mnt.sh
+        dest=/etc/devkit/devkit-volume.sh
+        owner=root
+        group=root
+        mode=0700
+    - name: copy rc.local to inject volume management
+      copy:
+        src=files/rc.local
+        dest=/etc/rc.local
+        owner=root
+        group=root
+        mode=0755
+
+    - name: /etc/devkit/ssl exists
+      file:
+        path=/etc/devkit/ssl
+        state=directory
+        owner=root
+        group=root
+        mode=0700

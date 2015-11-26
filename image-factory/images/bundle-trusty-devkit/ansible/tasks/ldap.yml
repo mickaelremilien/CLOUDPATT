@@ -1,0 +1,62 @@
+---
+
+- name: LDAP - domain name changed
+  replace:
+    dest=/etc/hosts
+    regexp='novalocal'
+    replace='devkit.cw'
+
+- name: LDAP - set slapd password
+  debconf:
+    name='slapd'
+    question='slapd/password1'
+    vtype='password'
+    value="c10udw477"
+
+- name: LDAP - set slapd password again
+  debconf:
+    name='slapd'
+    question='slapd/password2'
+    vtype='password'
+    value="c10udw477"
+
+- name: LDAP - packages installed
+  apt:
+    pkg={{ item }}
+    state=present
+  with_items:
+    - slapd
+    - ldap-utils
+
+- name: LDAP - domain name changed back
+  replace:
+    dest=/etc/hosts
+    regexp='devkit\.cw'
+    replace='novalocal'
+
+- name: LDAP - initial content file uploaded
+  copy:
+    src=files/add_content.ldif
+    dest=/tmp/add_content.ldif
+    owner=root
+    group=root
+    mode=0644
+
+- name: LDAP - check if initial content already exists
+  shell: ldapsearch -x -LLL -b dc=devkit,dc=cw 'uid=cloudwatt' cn 5000
+  register: ldap_init_done_sh
+
+- name: LDAP - initial content created
+  shell: sudo ldapadd -x -D cn=admin,dc=devkit,dc=cw -w c10udw477 -f /tmp/add_content.ldif
+  when: "'Administrator' not in ldap_init_done_sh.stdout"
+
+- name: LDAP - permissions modification file uploaded
+  copy:
+    src=files/add_permissions.ldif
+    dest=/tmp/add_permissions.ldif
+    owner=root
+    group=root
+    mode=0644
+
+- name: LDAP - administrative permissions added
+  shell: sudo ldapmodify -Y EXTERNAL -H ldapi:/// -f /tmp/add_permissions.ldif

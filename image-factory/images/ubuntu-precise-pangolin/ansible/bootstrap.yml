@@ -1,0 +1,24 @@
+- hosts: local
+  remote_user: ubuntu
+  become: yes
+
+  tasks:
+    - name: packages installed
+      apt:
+        pkg={{ item }}
+        state=present
+      with_items:
+        - haveged
+        - curl
+        - bzip2
+        - unzip
+
+    - apt:
+        update_cache=yes
+        upgrade=full
+
+    - lineinfile:
+        dest=/etc/ssh/sshd_config
+        regexp='^PermitRootLogin.*$'
+        line='PermitRootLogin no'
+        insertafter=EOF

@@ -1,0 +1,117 @@
+- hosts: local
+  user: cloud
+  sudo: true
+
+  tasks:
+    - name: apt-get update & upgrade
+      apt: upgrade=full update_cache=yes cache_valid_time=3600
+
+    - name: default sh is bash
+      file: src=/bin/bash dest=/bin/sh state=link
+
+    - name: packages installed
+      apt:
+        pkg={{ item }}
+        state=present
+      with_items:
+        - apache2
+        - php5
+        - libapache2-mod-php5
+        - curl
+
+    - name: enable apache2 ssl (https)
+      apache2_module:
+        name=ssl
+        state=present
+
+    - name: enable rewrite module
+      apache2_module:
+        name=rewrite
+        state=present
+
+    - name: download dokuwiki tar
+      get_url:
+        url=http://download.dokuwiki.org/src/dokuwiki/dokuwiki-stable.tgz
+        dest=/var/www/dokuwiki-stable.tgz
+        mode=0644
+
+    - name: unpack dokuwiki tar
+      unarchive:
+        src=/var/www/dokuwiki-stable.tgz
+        dest=/var/www/
+        copy=no
+
+    - name: delete dokuwiki tar
+      file:
+        path=/var/www/dokuwiki-stable.tgz
+        state=absent
+
+    - name: rename dokuwiki folder
+      shell: sudo mv /var/www/dokuwiki-*/ /var/www/dokuwiki
+
+    - name: dokuwiki has correct ownership
+      file:
+        path=/var/www/dokuwiki
+        state=directory
+        owner=www-data
+        group=www-data
+        recurse=yes
+
+    - name: apache service started
+      service: name=apache2 state=started
+    - name: apache service enabled
+      service: name=apache2 enabled=yes
+
+    - name: apache site configuration
+      copy:
+        src=files/dokuwiki.apache2.conf
+        dest=/etc/apache2/sites-available/dokuwiki.conf
+        owner=root
+        group=root
+        mode=0644
+    - name: apache ssl site configuration (https)
+      copy:
+        src=files/ssl-dokuwiki.apache2.conf
+        dest=/etc/apache2/sites-available/ssl-dokuwiki.conf
+        owner=root
+        group=root
+        mode=0644
+    - name: enable apache site
+      shell: /usr/sbin/a2dissite 000-default && /usr/sbin/a2ensite dokuwiki
+
+    - name: restart apache
+      service: name=apache2 state=restarted
+
+    - name: get hostname
+      shell: curl http://169.254.169.254/latest/meta-data/hostname
+      register: hostname
+    - name: set postfix hostname
+      shell: debconf-set-selections <<< "postfix postfix/mailname string '{{ hostname.stdout }}'"
+    - name: set postfix mailer type
+      shell: debconf-set-selections <<< "postfix postfix/main_mailer_type string 'Internet Site'"
+    - name: postfix installed
+      apt: pkg=postfix state=present
+
+    - name: /etc/dokuwiki/ exists
+      file:
+        path=/etc/dokuwiki
+        state=directory
+        owner=root
+        group=root
+        mode=0755
+
+    - name: copy volume management script
+      copy:
+        src=files/dokuwiki_mnt.sh
+        dest=/etc/dokuwiki/dokuwiki-volume.sh
+        owner=root
+        group=root
+        mode=0700
+
+    - name: copy rc.local to inject volume management
+      copy:
+        src=files/rc.local
+        dest=/etc/rc.local
+        owner=root
+        group=root
+        mode=0755

@@ -1,0 +1,59 @@
+- hosts: local
+  remote_user: cloud
+  become: yes
+
+  tasks:
+    - name: default sh is bash
+      file: src=/bin/bash dest=/bin/sh state=link
+
+    - name: apt cache is up-to-date
+      apt:
+        update_cache=yes
+
+    - name: packages installed
+      apt:
+        pkg="{{ item }}"
+        state=present
+      with_items:
+        - strongswan
+
+    - name: replace sysctl.conf
+      copy:
+        src=files/sysctl.conf
+        dest=/etc/sysctl.conf
+        owner=root
+        group=root
+        mode=0644
+
+    - name: enable IPv4 forwarding
+      shell: sysctl net.ipv4.ip_forward=1
+
+    - name: enable IPv6 forwarding
+      shell: sysctl net.ipv6.conf.all.forwarding=1
+
+    - name: add ipsec.conf
+      copy:
+        src=files/ipsec.conf
+        dest=/etc/ipsec.conf
+        owner=root
+        group=root
+        mode=0644
+
+    - name: add ipsec.secrets
+      copy:
+        src=files/ipsec.secrets
+        dest=/etc/ipsec.secrets
+        owner=root
+        group=root
+        mode=0644
+
+    - name: add strongswan.conf
+      copy:
+        src=files/strongswan.conf
+        dest=/etc/strongswan.conf
+        owner=root
+        group=root
+        mode=0644
+
+    - name: start ipsec
+      shell: ipsec start
