@@ -1,6 +1,5 @@
 - hosts: local
-  user: cloud
-  sudo: true
+  become: yes 
 
   vars:
     wp_db_name: wordpress

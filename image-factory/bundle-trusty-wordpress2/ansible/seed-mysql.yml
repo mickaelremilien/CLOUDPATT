@@ -2,6 +2,9 @@
   user: cloud
   sudo: true
 
+  vars:
+    wp_db_pass: "{{ lookup('password', '/tmp/keystore chars=ascii_letters,digits,hexdigits,punctuation') }}"
+
   tasks:
     - name: packages installed
       apt:
@@ -19,7 +22,7 @@
     - name: mysql user is created
       mysql_user:
         name=wordpress
-        password="CLOUDPASS"
+        password="{{ wp_db_pass }}"
         priv="wordpress.*:SELECT,INSERT,UPDATE,DELETE,CREATE,DROP,ALTER"
         state=present
 
