@@ -25,7 +25,7 @@
 
     - name: wordpress site configuration
       template:
-        src=template/wordpress.etc.conf
+        src=templates/wordpress.etc.conf
         dest=/etc/wordpress/wp-config.php
         owner=root
         group=root
