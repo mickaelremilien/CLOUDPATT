@@ -24,7 +24,7 @@
       notify: enable apache site
 
     - name: wordpress site configuration
-      copy:
+      template:
         src=template/wordpress.etc.conf
         dest=/etc/wordpress/wp-config.php
         owner=root
@@ -61,7 +61,7 @@
         name=apache2
         state=restarted
         enabled=yes
-        
+
     - name: restart wordpress
       service:
         name=apache2
