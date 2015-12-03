@@ -21,12 +21,11 @@ parameters:
     description: Public network ID
     default: 6ea98324-0f14-49f6-97c0-885d1b8dc517
 
-  security_groups:
-    type: comma_delimited_list
-
 resources:
 
   internal_net:
+    type: OS::Neutron::Net
+  internal_net2:
     type: OS::Neutron::Net
 
   internal_snet:
@@ -34,6 +33,24 @@ resources:
     properties:
       cidr: "10.1.1.0/24"
       network_id: { get_resource: internal_net }
+
+  internal_snet2:
+    type: OS::Neutron::Subnet
+    properties:
+      cidr: "10.1.2.0/24"
+      network_id: { get_resource: internal_net2 }
+
+  security_group:
+    type: OS::Neutron::SecurityGroup
+    properties:
+      rules:
+        - { direction: ingress, protocol: TCP, port_range_min: 22, port_range_max: 22 }
+        - { direction: ingress, protocol: TCP, port_range_min: 80, port_range_max: 80 }
+        - { direction: ingress, protocol: TCP, port_range_min: 443, port_range_max: 443 }
+        - { direction: ingress, protocol: ICMP }
+        - { direction: egress, protocol: ICMP }
+        - { direction: egress, protocol: TCP }
+        - { direction: egress, protocol: UDP }
 
   router:
     type: OS::Neutron::Router
@@ -43,11 +60,17 @@ resources:
         enable_snat: true
         network: "public"
 
-  router_interface:
+  router_interface01:
     type: OS::Neutron::RouterInterface
     properties:
       router_id: { get_resource : router }
       subnet_id: { get_resource : internal_snet }
+
+  router_interface02:
+    type: OS::Neutron::RouterInterface
+    properties:
+      router_id: { get_resource : router }
+      subnet_id: { get_resource : internal_snet2 }
 
   floating_ip:
     type: OS::Neutron::FloatingIP
@@ -55,10 +78,15 @@ resources:
       floating_network_id: {get_param: public_net_id}
       port_id: {get_attr: [web_lb_pool, vip, port_id]}
 
+  floating_ip2:
+    type: OS::Neutron::FloatingIP
+    properties:
+      floating_network_id: {get_param: public_net_id}
+
   floating_ip_link:
     type: OS::Nova::FloatingIPAssociation
     properties:
-      floating_ip: { get_resource: floating_ip }
+      floating_ip: { get_resource: floating_ip2 }
       server_id: { get_resource: server }
 
   stack_public_entry_point:
@@ -73,7 +101,7 @@ resources:
               template: |
                 $floating_ip$
               params:
-                $floating_ip$: { get_attr: [floating_ip, floating_ip_address] }
+                $floating_ip$: { get_attr: [floating_ip2, floating_ip_address] }
 
   server_init:
     type: OS::Heat::MultipartMime
@@ -85,99 +113,15 @@ resources:
     type: OS::Nova::Server
     properties:
       key_name: { get_param: keypair_name }
-      image: $IMAGE$
-      flavor: { get_param: flavor_name }
+      image: { get_param: image }
+      flavor: { get_param: flavor }
       networks:
-        - subnet_id: {get_resource: internal_snet}
+        - network: {get_resource: internal_net}
       security_groups:
-        - { get_param: web_secgroup }
+        - { get_resource: security_group }
       user_data_format: RAW
       user_data:
         get_resource: server_init
-
-  web_secgroup:
-    type: OS::Neutron::SecurityGroup
-    properties:
-      rules:
-        - protocol: tcp
-          remote_ip_prefix: {get_attr: [web_lb_pool, vip, address]}
-          port_range_min: 80
-          port_range_max: 80
-        - protocol: tcp
-          port_range_min: 22
-          port_range_max: 22
-
-  sql_secgroup:
-    type: OS::Neutron::SecurityGroup
-    properties:
-      rules:
-        - protocol: tcp
-          remote_mode: remote_group_id
-          remote_group_id: { get_resource: web_secgroup }
-          port_range_min: 3306
-          port_range_max: 3306
-        - protocol: tcp
-          remote_ip_prefix: {get_attr: [sql_lb_pool, vip, address]}
-          port_range_min: 3306
-          port_range_max: 3306
-        - protocol: tcp
-          remote_mode: remote_group_id
-          remote_group_id: {get_resource: web_secgroup}
-          port_range_min: 22
-          port_range_max: 22
-
-  web_asg:
-    depends_on: [internal_snet]
-    type: OS::Heat::AutoScalingGroup
-    properties:
-      min_size: 2
-      max_size: 5
-      resource:
-        type: srv_wdprss.yaml
-        properties:
-          lb_pool: {get_resource: web_lb_pool}
-          lb_port: 80
-          flavor: {get_param: flavor}
-          image: {get_param: image}
-          key_name: {get_param: keypair_name}
-          network_id: {get_resource: internal_snet}
-          security_groups:
-            - {get_resource: web_secgroup}
-
-  sql_asg:
-    depends_on: [internal_snet]
-    type: OS::Heat::AutoScalingGroup
-    properties:
-      min_size: 2
-      max_size: 5
-      resource:
-        type: srv_sql.yaml
-        properties:
-          lb_pool: {get_resource: sql_lb_pool}
-          lb_port: 3306
-          flavor: {get_param: flavor}
-          image: {get_param: image}
-          key_name: {get_param: keypair_name}
-          network_id: {get_resource: internal_net}
-          security_groups:
-            - {get_resource: sql_secgroup}
-
-
-
-  sql_lb_pool:
-    type: OS::Neutron::Pool
-    properties:
-      protocol: TCP
-      subnet_id: {get_resource: internal_snet}
-      lb_method: ROUND_ROBIN
-      vip:
-        protocol_port: 80
-
-  sql_lb_lb:
-    type: OS::Neutron::LoadBalancer
-    properties:
-      protocol_port: 80
-      pool_id: {get_resource: sql_lb_pool}
 
   web_lb_pool:
     depends_on: [sql_lb_pool]
@@ -195,12 +139,26 @@ resources:
       protocol_port: 80
       pool_id: {get_resource: web_lb_pool}
 
+  sql_lb_pool:
+    type: OS::Neutron::Pool
+    properties:
+      protocol: TCP
+      subnet_id: {get_resource: internal_snet2}
+      lb_method: ROUND_ROBIN
+      vip:
+        protocol_port: 80
+
+  sql_lb_lb:
+    type: OS::Neutron::LoadBalancer
+    properties:
+      protocol_port: 80
+      pool_id: {get_resource: sql_lb_pool}
+
   web_secgroup:
     type: OS::Neutron::SecurityGroup
     properties:
       rules:
         - protocol: tcp
-          remote_ip_prefix: {get_attr: [web_lb_pool, vip, address]}
           port_range_min: 80
           port_range_max: 80
         - protocol: tcp
@@ -208,6 +166,7 @@ resources:
           port_range_max: 22
 
   sql_secgroup:
+    depends_on: [internal_snet2]
     type: OS::Neutron::SecurityGroup
     properties:
       rules:
@@ -221,13 +180,15 @@ resources:
           port_range_min: 3306
           port_range_max: 3306
         - protocol: tcp
+          port_range_min: 22
+          port_range_max: 22
+        - protocol: tcp
           remote_mode: remote_group_id
           remote_group_id: {get_resource: web_secgroup}
           port_range_min: 22
           port_range_max: 22
 
   web_asg:
-    depends_on: [internal_snet]
     type: OS::Heat::AutoScalingGroup
     properties:
       min_size: 2
@@ -235,7 +196,8 @@ resources:
       resource:
         type: srv_wdprss.yaml
         properties:
-          lb_pool: {get_resource: web_lb_pool}
+          sql_lb_pool: { get_resource: sql_lb_pool}
+          lb_pool: { get_resource: web_lb_pool}
           lb_port: 80
           flavor: {get_param: flavor}
           image: {get_param: image}
@@ -245,7 +207,6 @@ resources:
             - {get_resource: web_secgroup}
 
   sql_asg:
-    depends_on: [internal_snet]
     type: OS::Heat::AutoScalingGroup
     properties:
       min_size: 2
@@ -258,7 +219,7 @@ resources:
           flavor: {get_param: flavor}
           image: {get_param: image}
           key_name: {get_param: keypair_name}
-          network_id: {get_resource: internal_net}
+          network_id: {get_resource: internal_net2}
           security_groups:
             - {get_resource: sql_secgroup}
 

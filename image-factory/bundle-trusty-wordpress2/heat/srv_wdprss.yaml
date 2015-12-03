@@ -5,6 +5,10 @@ parameters:
     type: string
     description: The LB pool in which the instance should be added
 
+  sql_lb_pool:
+    type: string
+    description: The LB pool of the mysql cluster
+
   lb_port:
     type: number
     description: Port in the LB pool
@@ -50,31 +54,28 @@ resources:
         - network: {get_param: network_id}
       security_groups: {get_param: security_groups}
       user_data_format: RAW
-      user_data: |
-        #!/usr/bin/env bash
-        echo "$(date) - START" >> /var/log/web_srv.log
-        export DEBIAN_FRONTEND=noninteractive
-        apt-get update 2>&1 >> /var/log/web_srv.log
-        echo "$(date) - update done" >> /var/log/web_srv.log
-        apt-get -o Dpkg::Options::="--force-confold" upgrade -y 2>&1 >> /var/log/web_srv.log
-        echo "$(date) - upgrade done" >> /var/log/web_srv.log
-        apt-get -o Dpkg::Options::="--force-confold" install apache2 -y 2>&1 >> /var/log/web_srv.log
-        echo "$(date) - apache2 done" >> /var/log/web_srv.log
-        mkdir /etc/ansible
-        echo "[local]" >> /etc/ansible/hosts
-        echo "127.0.0.1 ansible_connection=local" >> /etc/ansible/hosts
-        cd /root && git clone  https://github.com/mickaelremilien/CLOUDPATT.git
-        ansible-playbook root/image-factory/bundle-trusty-wordpress2/ansible/seed-wdprss.yml boot
-        rm -rf /root/boot
-    config:
-      str_replace:
-        template: |
-          #!/bin/bash
-          touch /var/log/sql_vip
-          sudo sed -i "s/$sql_ip$/g" /var/log/sql_vip
-        params:
-          $sql_ip$: { get_attr: [sql_lb_pool, vip, address]}
-
+      user_data:
+        str_replace:
+          template: |
+            #!/usr/bin/env bash
+            echo "$(date) - START" >> /var/log/web_srv.log
+            export DEBIAN_FRONTEND=noninteractive
+            apt-get update 2>&1 >> /var/log/web_srv.log
+            echo "$(date) - update done" >> /var/log/web_srv.log
+            apt-get -o Dpkg::Options::="--force-confold" upgrade -y 2>&1 >> /var/log/web_srv.log
+            echo "$(date) - upgrade done" >> /var/log/web_srv.log
+            apt-get -o Dpkg::Options::="--force-confold" install apache2 -y 2>&1 >> /var/log/web_srv.log
+            echo "$(date) - apache2 done" >> /var/log/web_srv.log
+            mkdir /etc/ansible
+            echo "[local]" >> /etc/ansible/hosts
+            echo "127.0.0.1 ansible_connection=local" >> /etc/ansible/hosts
+            cd /root && git clone  https://github.com/mickaelremilien/CLOUDPATT.git
+            ansible-playbook root/image-factory/bundle-trusty-wordpress2/ansible/seed-wdprss.yml boot
+            rm -rf /root/boot
+            touch /var/log/sql_vip
+            sudo sed -i "s/$sql_ip$/g" /var/log/sql_vip
+          params:
+            $sql_ip$: { get_param: [sql_lb_pool, vip, address]}
 outputs:
   first_address:
     description: IP address of the first interface
