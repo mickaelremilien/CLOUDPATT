@@ -1,5 +1,5 @@
 - hosts: local
-  become: yes 
+  become: yes
 
   vars:
     wp_db_name: wordpress
@@ -22,6 +22,15 @@
         group=root
         mode=0644
       notify: enable apache site
+
+    - name: wordpress site configuration
+      copy:
+        src=template/wordpress.etc.conf
+        dest=/etc/wordpress/wp-config.php
+        owner=root
+        group=root
+        mode=0644
+      notify: enable wordpress site
 
     - name: wordpress content has correct ownership
       file:
@@ -48,6 +57,12 @@
       notify: restart apache
 
     - name: restart apache
+      service:
+        name=apache2
+        state=restarted
+        enabled=yes
+        
+    - name: restart wordpress
       service:
         name=apache2
         state=restarted
