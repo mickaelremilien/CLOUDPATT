@@ -84,7 +84,7 @@ resources:
       image: {get_param: image}
       flavor: { get_param: flavor }
       networks:
-        - network: { get_resource: network }
+        - network: { get_param: network_id }
       security_groups:
         - { get_resource: security_group }
       user_data_format: RAW
