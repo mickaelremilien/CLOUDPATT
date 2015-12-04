@@ -3,7 +3,8 @@
 
   vars:
     wp_db_name: wordpress
-    wp_db_pass: "{{ lookup('password', '/tmp/keystore chars=ascii_letters,digits,hexdigits,punctuation') }}"
+    wp_db_pass: "{{ lookup('password', '/root/keystore chars=ascii_letters,digits,hexdigits,punctuation') }}"
+    wp_mysql_lb: "{{ lookup('file', '/var/log/sql_vip') }}"
 
   tasks:
     - name: packages installed
@@ -30,12 +31,6 @@
         owner=root
         group=root
         mode=0644
-
-   #- lineinfile: dest=/etc/wordpress/config-default.php
-    #             state=present
-    #             regexp='localhost'
-    #             line='This is my dog'
-    #             backup=yes
 
     - name: wordpress content has correct ownership
       file:

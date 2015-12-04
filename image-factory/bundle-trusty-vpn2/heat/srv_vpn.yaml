@@ -1,0 +1,121 @@
+heat_template_version: 2013-05-23
+
+
+description: Virtual Desktop stack
+
+
+parameters:
+  #cw_user_password:
+    #description: Password for the user named cloudwatt
+    #label: cloudwatt user password
+    #type: string
+    #hidden: true
+  key_name:
+    type: string
+    description: SSH key
+    default: mickael
+
+  security_groups:
+    type: comma_delimited_list
+
+  lb_pool:
+    type: string
+    description: The LB pool in which the instance should be added
+
+  lb_port:
+    type: number
+    description: Port in the LB pool
+  image:
+    type: string
+    description: Glance Image
+    default: "Ubuntu 14.04"
+
+  keypair_name:
+    description: Keypair to inject in instance
+    label: SSH Keypair
+    type: string
+    default: mickael
+
+  flavor:
+    type: string
+    description: Flavor
+    default: t1.cw.tiny
+
+  network_id:
+    type: string
+    description: Network ID
+
+
+resources:
+  network:
+    type: OS::Neutron::Net
+
+  pool_member:
+    depends_on: [server]
+    type: OS::Neutron::PoolMember
+    properties:
+      pool_id: {get_param: lb_pool}
+      address: {get_attr: [server, first_address]}
+      protocol_port: {get_param: lb_port}
+
+  security_group:
+    type: OS::Neutron::SecurityGroup
+    properties:
+      rules:
+        - { direction: ingress, protocol: TCP, port_range_min: 22, port_range_max: 22 }
+        - { direction: ingress, protocol: TCP, port_range_min: 80, port_range_max: 80 }
+        - { direction: ingress, protocol: TCP, port_range_min: 443, port_range_max: 443 }
+        - { direction: ingress, protocol: UDP, port_range_min: 1194, port_range_max: 1194 }
+        - { direction: ingress, protocol: ICMP }
+        - { direction: egress, protocol: ICMP }
+        - { direction: egress, protocol: TCP }
+        - { direction: egress, protocol: UDP }
+        - { direction: egress, protocol: UDP, port_range_min: 1194, port_range_max: 1194 }
+
+  floating_ip:
+    type: OS::Neutron::FloatingIP
+    properties:
+      floating_network_id: 6ea98324-0f14-49f6-97c0-885d1b8dc517
+
+  server:
+    type: OS::Nova::Server
+    properties:
+      key_name: { get_param: keypair_name }
+      image: {get_param: image}
+      flavor: { get_param: flavor }
+      networks:
+        - network: { get_resource: network }
+      security_groups:
+        - { get_resource: security_group }
+      user_data_format: RAW
+      user_data: |
+            #!/usr/bin/env bash
+            echo "$(date) - START" >> /var/log/vpn_srv.log
+            export DEBIAN_FRONTEND=noninteractive
+            apt-get update 2>&1 >> /var/log/vpn_srv.log
+            echo "$(date) - update done" >> /var/log/vpn_srv.log
+            apt-get -o Dpkg::Options::="--force-confold" upgrade -y 2>&1 >> /var/log/vpn_srv.log
+            echo "$(date) - upgrade done" >> /var/log/vpn_srv.log
+            apt-get -o Dpkg::Options::="--force-confold" install openvpn -y 2>&1 >> /var/log/vpn_srv.log
+            echo "$(date) - apache2 done" >> /var/log/vpn_srv.log
+            mkdir /etc/ansible
+            echo "[local]" >> /etc/ansible/hosts
+            echo "127.0.0.1 ansible_connection=local" >> /etc/ansible/hosts
+            cd /home/cloud/
+            git clone  https://github.com/mickaelremilien/CLOUDPATT.git
+            sudo ansible-playbook /home/cloud/CLOUDPATT/image-factory/bundle-trusty-vpn2/ansible/bootstrap.yml
+
+  floating_ip_link:
+    type: OS::Nova::FloatingIPAssociation
+    properties:
+      floating_ip: { get_resource: floating_ip }
+      server_id: { get_resource: server }
+
+outputs:
+  first_address:
+    description: IP address of the first interface
+    value: {get_attr:  [server, first_address]}
+
+  instance_id:
+    description: ID of the server
+    value: {get_resource: server}
