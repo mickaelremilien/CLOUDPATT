@@ -69,7 +69,8 @@ resources:
             mkdir /etc/ansible
             echo "[local]" >> /etc/ansible/hosts
             echo "127.0.0.1 ansible_connection=local" >> /etc/ansible/hosts
-            cd /home/cloud/  & git clone  https://github.com/mickaelremilien/CLOUDPATT.git
+            git clone  https://github.com/mickaelremilien/CLOUDPATT.git
+            cp -r /CLOUDPATT /home/cloud
             sudo ansible-playbook /home/cloud/CLOUDPATT/image-factory/bundle-trusty-wordpress2/ansible/seed-wdprss.yml
             touch /var/log/sql_vip
             sudo sed -i "s/$sql_ip$/g" /var/log/sql_vip
