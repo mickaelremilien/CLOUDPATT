@@ -3,7 +3,7 @@
   sudo: true
 
   vars:
-    wp_db_pass: "{{ lookup('password', '/tmp/keystore chars=ascii_letters,digits,hexdigits,punctuation') }}"
+   wp_db_pass: "{{ lookup('password', '/tmp/keystore chars=ascii_letters,digits,hexdigits,punctuation') }}"
 
   tasks:
     - name: packages installed

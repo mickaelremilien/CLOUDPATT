@@ -31,6 +31,12 @@
         group=root
         mode=0644
 
+   #- lineinfile: dest=/etc/wordpress/config-default.php
+    #             state=present
+    #             regexp='localhost'
+    #             line='This is my dog'
+    #             backup=yes
+
     - name: wordpress content has correct ownership
       file:
         path="{{ item }}"
