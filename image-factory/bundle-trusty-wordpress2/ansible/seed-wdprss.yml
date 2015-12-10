@@ -22,7 +22,7 @@
         owner=root
         group=root
         mode=0644
-      notify: enable apache site
+      notify: enable apache siteb
 
     - name: wordpress site configuration
       template:
