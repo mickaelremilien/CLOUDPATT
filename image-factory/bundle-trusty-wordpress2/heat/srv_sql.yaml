@@ -75,7 +75,6 @@ resources:
         echo "$(date) - START" >> /var/log/sql_srv.log
         export DEBIAN_FRONTEND=noninteractive
         apt-get update 2>&1 >> /var/log/sql_srv.log
-        apt-get update 2>&1 >> /var/log/sql_srv.log
         echo "$(date) - update done" >> /var/log/sql_srv.log
         apt-get -o Dpkg::Options::="--force-confold" upgrade -y 2>&1 >> /var/log/sql_srv.log
         echo "$(date) - upgrade done" >> /var/log/sql_srv.log
@@ -86,9 +85,10 @@ resources:
         mkdir /etc/ansible
         echo "[local]" >> /etc/ansible/hosts
         echo "127.0.0.1 ansible_connection=local" >> /etc/ansible/hosts
+        cd /home/cloud/
         git clone  https://github.com/mickaelremilien/CLOUDPATT.git
         sudo ansible-playbook /home/cloud/CLOUDPATT/image-factory/bundle-trusty-wordpress2/ansible/seed-mysql.yml
-      
+
   volume:
     type: OS::Cinder::Volume
     properties:
