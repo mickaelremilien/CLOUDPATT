@@ -3,8 +3,8 @@
   sudo: true
 
   vars:
-   wp_db_pass: "{{ lookup('password', '/tmp/keystore chars=ascii_letters,digits,hexdigits,punctuation') }}"
-   wp_mysql_ip: "{{ lookup('file', '/home/cloud/sql_ip_bind') }}"
+   #wp_db_pass: "{{ lookup('password', '/tmp/keystore chars=ascii_letters,digits,hexdigits,punctuation') }}"
+   wp_db_pass: "toto"
   tasks:
     - name: packages installed
       apt:
@@ -24,8 +24,8 @@
         backup=yes
         state=present
         dest=/etc/mysql/my.cnf
-        regexp='bind-address            = 127.0.0.1'
-        line='bind-address            ={{ wp_mysql_ip }}'
+        regexp='^bind-address *='
+        line="bind-address = {{ ansible_default_ipv4.address }}"
 
     - name: mysql user is created
       mysql_user:
