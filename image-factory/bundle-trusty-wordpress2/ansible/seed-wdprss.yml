@@ -1,5 +1,6 @@
 - hosts: local
-  become: yes
+  user: cloud
+  sudo: true
 
   vars:
     wp_db_name: wordpress
@@ -22,7 +23,7 @@
         owner=root
         group=root
         mode=0644
-      notify: enable apache siteb
+      notify: enable apache site
 
     - name: wordpress site configuration
       template:

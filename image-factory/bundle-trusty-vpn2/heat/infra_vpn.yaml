@@ -157,7 +157,7 @@ resources:
           flavor: {get_param: flavor}
           image: {get_param: image}
           key_name: {get_param: keypair_name}
-          network_id: {get_resource: internal_snet}
+          network_id: {get_resource: internal_net}
           security_groups:
             - {get_resource: vpn_secgroup}
 
