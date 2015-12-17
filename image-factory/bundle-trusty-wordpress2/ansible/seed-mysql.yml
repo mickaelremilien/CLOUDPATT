@@ -24,14 +24,23 @@
         backup=yes
         state=present
         dest=/etc/mysql/my.cnf
-        regexp='^bind-address *='
-        line="bind-address = {{ ansible_default_ipv4.address }}"
+        regexp='^bind-address *= 127.0.0.1'
+        line='bind-address = {{ ansible_default_ipv4.address }}'
 
     - name: mysql user is created
       mysql_user:
         name=wordpress
+        host=10.1.1.4
+        password="{{ wp_db_pass }}""
+        priv="wordpress.*:ALL
+        state=present
+
+    - name: mysql user2 is created
+      mysql_user:
+        name=wordpress
+        host=10.1.1.5
         password="{{ wp_db_pass }}"
-        priv="wordpress.*:SELECT,INSERT,UPDATE,DELETE,CREATE,DROP,ALTER"
+        priv="wordpress.*:ALL
         state=present
 
     - name: mysql started
