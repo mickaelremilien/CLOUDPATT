@@ -24,7 +24,7 @@
         backup=yes
         state=present
         dest=/etc/mysql/my.cnf
-        regexp='^bind-address *= 127.0.0.1'
+        regexp='^bind-address = 127.0.0.1'
         line='bind-address = {{ ansible_default_ipv4.address }}'
 
     - name: mysql user is created
