@@ -20,31 +20,30 @@
         state=present
 
     - name: mysql configuration binding
-      lineinfile:
-        backup=yes
-        state=present
+      replace:
         dest=/etc/mysql/my.cnf
-        regexp='^bind-address = 127.0.0.1'
-        line='bind-address = {{ ansible_default_ipv4.address }}'
+        state=present
+        regexp='^bind-address.*$'
+        replace="bind-address = {{ ansible_default_ipv4.address }}"
 
     - name: mysql user is created
       mysql_user:
         name=wordpress
-        host=10.1.1.4
-        password="{{ wp_db_pass }}""
-        priv="wordpress.*:ALL
+        host="10.1.1.4"
+        password="{{ wp_db_pass }}"
+        priv=wordpress.*:ALL
         state=present
 
     - name: mysql user2 is created
       mysql_user:
         name=wordpress
-        host=10.1.1.5
+        host="10.1.1.5"
         password="{{ wp_db_pass }}"
-        priv="wordpress.*:ALL
+        priv=wordpress.*:ALL
         state=present
 
     - name: mysql started
-      service: name=mysql state=started enabled=yes
+      service: name=mysql state=restarted enabled=yes
 
   handlers:
     - name: restart mysql
