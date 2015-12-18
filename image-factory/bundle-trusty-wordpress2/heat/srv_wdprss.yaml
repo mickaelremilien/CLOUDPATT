@@ -55,8 +55,8 @@ resources:
       security_groups: {get_param: security_groups}
       user_data_format: RAW
       user_data: |
-        #str_replace:
-        #  template: |
+        str_replace:
+          template: |
             #!/usr/bin/env bash
             echo "$(date) - START" >> /var/log/web_srv.log
             export DEBIAN_FRONTEND=noninteractive
@@ -72,10 +72,10 @@ resources:
             cd /home/cloud/
             git clone  https://github.com/mickaelremilien/CLOUDPATT.git
             sudo ansible-playbook /home/cloud/CLOUDPATT/image-factory/bundle-trusty-wordpress2/ansible/seed-wdprss.yml
-          #  echo "$sql_ip$" > /var/log/sql_vip
+            echo "$sql_ip$" > /var/log/sql_vip
 
-          #params:
-          #  $sql_ip$: { get_param: [sql_lb_pool, vip, address]}
+          params:
+            $sql_ip$: { get_param: [sql_lb_pool, vip, address]}
 
 outputs:
   first_address:
