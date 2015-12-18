@@ -22,7 +22,6 @@
     - name: mysql configuration binding
       replace:
         dest=/etc/mysql/my.cnf
-        state=present
         regexp='^bind-address.*$'
         replace="bind-address = {{ ansible_default_ipv4.address }}"
 
