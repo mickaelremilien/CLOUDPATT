@@ -23,7 +23,6 @@
         - curl
         - bzip2
         - unzip
-        - gunzip
         - gzip
         - git
         - libssl-dev
