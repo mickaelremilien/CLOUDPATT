@@ -52,11 +52,12 @@
 
     - name: fr locale generated
       locale_gen: name=fr_FR.UTF-8 state=present
+    - name: change right openvpn folder
 
     - name: Gunzip server configuration
       unarchive:
         src=/usr/share/doc/openvpn/examples/sample-config-files/server.conf.gz
-        dest=/etc/openvpn/server.conf
+        dest=/etc/openvpn/
       sudo: yes
 
     - name: Copy file configuration client
