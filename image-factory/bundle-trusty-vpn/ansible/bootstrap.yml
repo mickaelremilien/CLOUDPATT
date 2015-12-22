@@ -29,12 +29,12 @@
         - openvpn
         - easy-rsa
         - gadmin-openvpn-server
-
+    - group: name=cloudwatt state=present
     - name: cw user present
       user:
         name=cloudwatt
         shell=/bin/bash
-        group=yes
+        group=cloudwatt
         groups=sudo
         append=yes
 
