@@ -21,6 +21,15 @@ parameters:
     description: Public network ID
     default: 6ea98324-0f14-49f6-97c0-885d1b8dc517
 
+  password:
+    description: Basic auth password for all users
+    label: Apache2 Auth Password
+    type: string
+    hidden: true
+    constraints:
+      - length: { min: 6, max: 24 }
+        description: Password must be between 6 and 24 characters
+
 resources:
 
   internal_net:
@@ -109,6 +118,18 @@ resources:
       parts:
       - config: { get_resource: stack_public_entry_point }
 
+  set_password:
+    type: OS::Heat::SoftwareConfig
+    properties:
+      config:
+        str_replace:
+          template: |
+            #!/bin/bash
+            sudo mkdir /etc/wdpasswd/
+            sudo touch /etc/wdpasswd/wdpass
+            echo -n "$password$" >> /etc/wdpasswd/wdpass
+          params:
+            $password$: { get_param: password }
   server:
     type: OS::Nova::Server
     properties:

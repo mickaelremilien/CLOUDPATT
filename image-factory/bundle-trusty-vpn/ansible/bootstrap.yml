@@ -31,20 +31,6 @@
         - easy-rsa
         - gadmin-openvpn-server
 
-    # - name: python packages installed
-    #   pip:
-    #     name="{{ item }}"
-    #     state=present
-    #   with_items:
-    #     - python-neutronclient
-    #     - python-novaclient
-    #     - python-cinderclient
-    #     - python-keystoneclient
-    #     - python-swiftclient
-    #     - python-glanceclient
-    #     - python-flameclient
-    #     - python-heatclient
-
     - name: cw user present
       user:
         name=cloudwatt
@@ -205,6 +191,6 @@
   #      backup=yes
   #    notify: restart openvpn
 
-handlers:
+  handlers:
     - name: restart openvpn
       service: name=openvpn state=restarted
