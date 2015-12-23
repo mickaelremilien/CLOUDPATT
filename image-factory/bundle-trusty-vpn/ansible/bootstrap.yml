@@ -2,17 +2,22 @@
   user: cloud
   sudo: true
 
+  vars:
+    COUNTRY: /etc/vpnconf/COUNTRY
+    PROVINCE: /etc/vpnconf/PROVINCE
+    CITY: /etc/vpnconf/CITY
+    ORGANISATION: /etc/vpnconf/ORGANISATION
+    EMAIL: /etc/vpnconf/EMAIL
+
   tasks:
     - name: wheezy backports repositories added
-      apt_repository: state=present repo='deb http://ftp.us.debian.org/debian wheezy-backports main'
+      apt_repository: state=pdefinir une variable avecresent repo='deb http://ftp.us.debian.org/debian wheezy-backports main'
 
     - name: apt-get update & upgrade
       apt:
         upgrade=full
         update_cache=yes
         cache_valid_time=3600
-
-
 
     - name: packages installed
       apt:
@@ -55,17 +60,17 @@
     - name: fr locale generated
       locale_gen: name=fr_FR.UTF-8 state=present
 
-    - name: Gunzip server configuration copy    
+    - name: Gunzip server configuration copy
       copy:
         src=/usr/share/doc/openvpn/examples/sample-config-files/server.conf.gz
         dest=/etc/openvpn/
       sudo: yes
-      
+
     - name: Gunzip server configuration
       command:
         sudo gunzip /etc/openvpn/server.conf.gz
       sudo: yes
- 
+
     - name: Copy file configuration client
       copy:
         src=/usr/share/doc/openvpn/examples/sample-config-files/client.conf
@@ -151,6 +156,41 @@
       sudo: yes
     - name: Enable firewall with UFW
       ufw: logging=on
+      sudo: yes
+
+    - name: certificate configuration COUNTRY
+      replace:
+        dest=/etc/openvpn/easy-rsa/vars
+        regexp='export KEY_COUNTRY="FR"'
+        replace='export KEY_COUNTRY="{{COUNTRY}}"'
+      sudo: yes
+
+    - name: certificate configuration PROVINCE
+      replace:
+        dest=/etc/openvpn/easy-rsa/vars
+        regexp=export KEY_PROVINCE="IDF"
+        replace='export KEY_PROVINCE="{{PROVINCE}}"'
+      sudo: yes
+
+    - name: certificate configuration CITY
+      replace:
+        dest=/etc/openvpn/easy-rsa/vars
+        regexp=export KEY_CITY="PARIS"
+        replace='export KEY_CITY="{{CITY}}"'
+      sudo: yes
+
+    - name: certificate configuration ORGANISATION
+      replace:
+        dest=/etc/openvpn/easy-rsa/vars
+        regexp=export KEY_ORG="CLOUDWATT"
+        replace='export KEY_ORG="{{ORGANISATION}}"'
+      sudo: yes
+
+    - name: certificate configuration EMAIL
+      replace:
+        dest=/etc/openvpn/easy-rsa/vars
+        regexp=export KEY_EMAIL="contact@cloudwatt.com"
+        replace='export KEY_EMAIL="{{EMAIL}}"'
       sudo: yes
 
   #  - name: source vars file

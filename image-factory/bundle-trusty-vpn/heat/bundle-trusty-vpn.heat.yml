@@ -1,16 +1,64 @@
 heat_template_version: 2013-05-23
 
 
-description: Virtual Desktop stack
+description: Virtual Private Network Stack
 
 
 parameters:
+
+  COUNTRY:
+    description: COUNTRY for the VPN certificate
+    label: certificate VPN COUNTRY
+    type: string
+    hidden: true
+    constraints:
+      - length: { min: 6, max: 40 }
+        description: COUNTRY must be between 6 and 40 characters
+
+  PROVINCE:
+    description: PROVINCE for the VPN certificate
+    label: certificate VPN PROVINCE
+    type: string
+    hidden: true
+    constraints:
+      - length: { min: 6, max: 40 }
+        description: PROVINCE must be between 6 and 40 characters
+
+  CITY:
+    description: CITY for the VPN certificate
+    label: certificate VPN CITY
+    type: string
+    hidden: true
+    constraints:
+      - length: { min: 6, max: 40 }
+        description: CITY must be between 6 and 40 characters
+
+  ORGANISATION:
+    description: ORGANISATION for the VPN certificate
+    label: certificate VPN ORGANISATION
+    type: string
+    hidden: true
+    constraints:
+      - length: { min: 6, max: 40 }
+        description: ORGANISATION must be between 6 and 40 characters
+
+  EMAIL:
+    description: EMAIL for the VPN certificate
+    label: certificate VPN EMAIL
+    type: string
+    hidden: true
+    constraints:
+      - length: { min: 6, max: 40 }
+        description:  EMAIL must be between 6 and 40 characters
+
   cw_user_password:
     description: Password for the user named cloudwatt
     label: cloudwatt user password
     type: string
     hidden: true
-
+    constraints:
+      - length: { min: 6, max: 24 }
+        description: Password must be between 6 and 24 characters
   image:
     type: string
     description: Glance Image
@@ -69,6 +117,26 @@ resources:
     properties:
       floating_network_id: 6ea98324-0f14-49f6-97c0-885d1b8dc517
 
+  set_certificate:
+    type: OS::Heat::SoftwareConfig
+    properties:
+      config:
+        str_replace:
+          template: |
+            #!/bin/bash
+            sudo mkdir /etc/vpnconf/
+            echo -n $COUNTRY$ >> /etc/vpnconf/COUNTRY
+            echo -n $PROVINCE$ >> /etc/vpnconf/PROVINCE
+            echo -n $CITY$ >> /etc/vpnconf/CITY
+            echo -n $ORGANISATION$ >> /etc/vpnconf/ORGANISATION
+            echo -n $EMAIL$ >> /etc/vpnconf/EMAIL
+          params:
+            $COUNTRY$: { get_param: COUNTRY }
+            $PROVINCE$: { get_param:PROVINCE }
+            $CITY$: { get_param: CITY }
+            $ORGANISATION$: { get_param: ORGANISATION }
+            $EMAIL$:  { get_param: EMAIL }
+
   server:
     type: OS::Nova::Server
     properties:
@@ -81,8 +149,7 @@ resources:
         - { get_resource: security_group }
       user_data_format: RAW
       user_data:
-        str_replace:
-          template: |
+        get_resource: set_certificate |
             #!/usr/bin/env bash
             echo "$(date) - START" >> /var/log/vpn_srv.log
             export DEBIAN_FRONTEND=noninteractive
@@ -98,7 +165,7 @@ resources:
             cd /home/cloud/
             git clone  https://github.com/mickaelremilien/CLOUDPATT.git
             sudo ansible-playbook /home/cloud/CLOUDPATT/image-factory/bundle-trusty-vpn/ansible/bootstrap.yml
-                  
+
   floating_ip_link:
     type: OS::Nova::FloatingIPAssociation
     properties:
