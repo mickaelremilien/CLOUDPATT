@@ -150,7 +150,7 @@
         dest=/etc/default/ufw
         owner=root
         group=root
-        mode=0644
+        mode=0755
 
     - name: Enable firewall with UFW
       ufw: state=enabled policy=allow
