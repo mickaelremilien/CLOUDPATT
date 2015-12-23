@@ -24,11 +24,13 @@
         - bzip2
         - unzip
         - gzip
+        - tar
         - git
         - libssl-dev
         - openvpn
         - easy-rsa
         - gadmin-openvpn-server
+
     - group: name=cloudwatt state=present
     - name: cw user present
       user:
@@ -52,13 +54,15 @@
 
     - name: fr locale generated
       locale_gen: name=fr_FR.UTF-8 state=present
-    
 
     - name: Gunzip server configuration
-      unarchive:
-        src=/usr/share/doc/openvpn/examples/sample-config-files/server.conf.gz
-        dest=/etc/openvpn/
+      command: gunzip /usr/share/doc/openvpn/examples/sample-config-files/server.conf.gz /etc/openvpn/server.conf
       sudo: yes
+    #- name: Gunzip server configuration
+    #  command:
+    #    src=/usr/share/doc/openvpn/examples/sample-config-files/server.conf.gz
+    #    dest=/etc/openvpn/
+    #  sudo: yes
 
     - name: Copy file configuration client
       copy:
