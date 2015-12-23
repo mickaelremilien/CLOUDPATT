@@ -3,15 +3,15 @@
   sudo: true
 
   vars:
-    COUNTRY: /etc/vpnconf/COUNTRY
-    PROVINCE: /etc/vpnconf/PROVINCE
-    CITY: /etc/vpnconf/CITY
-    ORGANISATION: /etc/vpnconf/ORGANISATION
-    EMAIL: /etc/vpnconf/EMAIL
+    COUNTRY: cat /etc/vpnconf/COUNTRY
+    PROVINCE: cat /etc/vpnconf/PROVINCE
+    CITY: cat /etc/vpnconf/CITY
+    ORGANISATION: cat /etc/vpnconf/ORGANISATION
+    EMAIL: cat /etc/vpnconf/EMAIL
 
   tasks:
     - name: wheezy backports repositories added
-      apt_repository: state=pdefinir une variable avecresent repo='deb http://ftp.us.debian.org/debian wheezy-backports main'
+      apt_repository: state=present repo='deb http://ftp.us.debian.org/debian wheezy-backports main'
 
     - name: apt-get update & upgrade
       apt:
@@ -168,28 +168,28 @@
     - name: certificate configuration PROVINCE
       replace:
         dest=/etc/openvpn/easy-rsa/vars
-        regexp=export KEY_PROVINCE="IDF"
+        regexp='export KEY_PROVINCE="IDF"'
         replace='export KEY_PROVINCE="{{PROVINCE}}"'
       sudo: yes
 
     - name: certificate configuration CITY
       replace:
         dest=/etc/openvpn/easy-rsa/vars
-        regexp=export KEY_CITY="PARIS"
+        regexp='export KEY_CITY="PARIS"'
         replace='export KEY_CITY="{{CITY}}"'
       sudo: yes
 
     - name: certificate configuration ORGANISATION
       replace:
         dest=/etc/openvpn/easy-rsa/vars
-        regexp=export KEY_ORG="CLOUDWATT"
+        regexp='export KEY_ORG="CLOUDWATT"'
         replace='export KEY_ORG="{{ORGANISATION}}"'
       sudo: yes
 
     - name: certificate configuration EMAIL
       replace:
         dest=/etc/openvpn/easy-rsa/vars
-        regexp=export KEY_EMAIL="contact@cloudwatt.com"
+        regexp='export KEY_EMAIL="contact@cloudwatt.com"'
         replace='export KEY_EMAIL="{{EMAIL}}"'
       sudo: yes
 
