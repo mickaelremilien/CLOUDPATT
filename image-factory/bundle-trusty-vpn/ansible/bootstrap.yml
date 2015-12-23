@@ -194,49 +194,46 @@
         replace='export KEY_EMAIL="{{EMAIL}}"'
       sudo: yes
 
-  #  - name: source vars file
-  #    command: sudo . /etc/openvpn/easy-rsa/vars
+    - name: source vars file
+      command: sudo . /etc/openvpn/easy-rsa/vars
+    - name: Cleanning all old parameters
+      command: sudo bash /etc/openvpn/easy-rsa/clean-all
+    - name: Generate Diffi Hellman parameters
+      command: sudo openssl dhparam -out /etc/ssl/certs/dh2048.pem 2048 creates=/etc/ssl/certs/dh2048.pem
+    - name: Building Certificate Authority
+      command: sudo bash /etc/openvpn/easy-rsa/build-ca
+    - name: Building server keys
+      command: sudo bash /etc/openvpn/easy-rsa/build-key-server server
+    - name: Building client keys
+      command: sudo bash /etc/openvpn/easy-rsa/build-key client1
 
-  #  - name: Generate Diffi Hellman parameters
-  #    command: sudo openssl dhparam -out /etc/ssl/certs/dh2048.pem 2048 creates=/etc/ssl/certs/dh2048.pem
-  #  - name: Run the ./vars parameters
-  #    command: . /etc/openvpn/easy-rsa/vars
-  #  - name: Cleanning all old parameters
-  #    command: bash /etc/openvpn/easy-rsa/clean-all
-  #  - name: Building Certificate Authority
-  #    command: bash /etc/openvpn/easy-rsa/build-ca
-  #  - name: Building server keys
-  #    command: bash /etc/openvpn/easy-rsa/build-key-server server
-  #  - name: Building client keys
-  #    command: bash /etc/openvpn/easy-rsa/build-key client1
+    - name: Moving server key ca.crt
+      copy:
+        src=/etc/openvpn/easy-rsa/keys/ca.crt
+        dest=/etc/openvpn/ca.crt
+        owner=cloud
+        group=cloud
+        mode=644
+        backup=yes
 
-  #  - name: Moving server key ca.crt
-  #    copy:
-  #      src=/etc/openvpn/easy-rsa/keys/ca.crt
-  #      dest=/etc/openvpn/ca.crt
-  #      owner=cloud
-  #      group=cloud
-  #      mode=644
-  #      backup=yes
+    - name: Moving server key server.crt
+      copy:
+        src=/etc/openvpn/easy-rsa/keys/server.crt
+        dest=/etc/openvpn/server.crt
+        owner=cloud
+        group=cloud
+        mode=644
+        backup=yes
 
-  #  - name: Moving server key server.crt
-  #    copy:
-  #      src=/etc/openvpn/easy-rsa/keys/server.crt
-  #      dest=/etc/openvpn/server.crt
-  #      owner=cloud
-  #      group=cloud
-  #      mode=644
-  #      backup=yes
-
-  #  - name: Moving server key server.key
-  #    copy:
-  #      src=/etc/openvpn/easy-rsa/keys/server.key
-  #      dest=/etc/openvpn/server.key
-  #      owner=cloud
-  #      group=cloud
-  #      mode=644
-  #      backup=yes
-  #    notify: restart openvpn
+    - name: Moving server key server.key
+      copy:
+        src=/etc/openvpn/easy-rsa/keys/server.key
+        dest=/etc/openvpn/server.key
+        owner=cloud
+        group=cloud
+        mode=644
+        backup=yes
+      notify: restart openvpn
 
   handlers:
     - name: restart openvpn
