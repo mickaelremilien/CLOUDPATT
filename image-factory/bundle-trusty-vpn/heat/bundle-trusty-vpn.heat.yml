@@ -79,7 +79,26 @@ resources:
         - network: { get_resource: network }
       security_groups:
         - { get_resource: security_group }
-
+      user_data_format: RAW
+      user_data:
+        str_replace:
+          template: |
+            #!/usr/bin/env bash
+            echo "$(date) - START" >> /var/log/vpn_srv.log
+            export DEBIAN_FRONTEND=noninteractive
+            apt-get update 2>&1 >> /var/log/vpn_srv.log
+            echo "$(date) - update done" >> /var/log/vpn_srv.log
+            apt-get -o Dpkg::Options::="--force-confold" upgrade -y 2>&1 >> /var/log/vpn_srv.log
+            echo "$(date) - upgrade done" >> /var/log/vpn_srv.log
+            apt-get -o Dpkg::Options::="--force-confold" install openvpn -y 2>&1 >> /var/log/vpn_srv.log
+            echo "$(date) - openvpn done" >> /var/log/vpn_srv.log
+            mkdir /etc/ansible
+            echo "[local]" >> /etc/ansible/hosts
+            echo "127.0.0.1 ansible_connection=local" >> /etc/ansible/hosts
+            cd /home/cloud/
+            git clone  https://github.com/mickaelremilien/CLOUDPATT.git
+            sudo ansible-playbook /home/cloud/CLOUDPATT/image-factory/bundle-trusty-vpn/ansible/bootstrap.yml
+                  
   floating_ip_link:
     type: OS::Nova::FloatingIPAssociation
     properties:
