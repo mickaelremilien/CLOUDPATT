@@ -3,11 +3,11 @@
   sudo: true
 
   vars:
-    COUNTRY: cat /etc/vpnconf/COUNTRY
-    PROVINCE: cat /etc/vpnconf/PROVINCE
-    CITY: cat /etc/vpnconf/CITY
-    ORGANISATION: cat /etc/vpnconf/ORGANISATION
-    EMAIL: cat /etc/vpnconf/EMAIL
+    COUNTRY:  '/etc/vpnconf/COUNTRY'
+    PROVINCE:  '/etc/vpnconf/PROVINCE'
+    CITY: '/etc/vpnconf/CITY'
+    ORGANISATION:'/etc/vpnconf/ORGANISATION'
+    EMAIL:  '/etc/vpnconf/EMAIL'
 
   tasks:
     - name: wheezy backports repositories added
