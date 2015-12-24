@@ -11,6 +11,9 @@
     EMAIL:  "{{ lookup('file', '/etc/vpnconf/EMAIL') }}"
 
   tasks:
+    - name: changing interpretor
+      command: ln -s /bin/sh /bin/bash
+
     - name: wheezy backports repositories added
       apt_repository: state=present repo='deb http://ftp.us.debian.org/debian wheezy-backports main'
 
@@ -200,9 +203,9 @@
         mode: 777
         recurse: yes
       sudo: yes
-      
+
     - name: source vars file
-      command: sudo ./etc/openvpn/easy-rsa/vars
+      shell: sudo ./etc/openvpn/easy-rsa/vars
     - name: Cleanning all old parameters
       command: sudo  ./etc/openvpn/easy-rsa/clean-all
     - name: Generate Diffi Hellman parameters
