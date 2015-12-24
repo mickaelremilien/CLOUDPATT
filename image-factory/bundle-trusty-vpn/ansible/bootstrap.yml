@@ -203,6 +203,7 @@
       sudo: yes
 
     - name: generate openvpn conf
+      args; 
         chdir: /etc/openvpn/easy-rsa
         executable: /bin/bash
       shell:
