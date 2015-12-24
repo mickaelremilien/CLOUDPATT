@@ -195,7 +195,12 @@
       sudo: yes
 
     - name: setting easy-rsa folder
-      command: sudo chmod 777 /etc/openvpn/easy-rsa/*
+      file:
+        path: /etc/openvpn/easy-rsa/
+        mode: 777
+        recurse: yes
+      sudo: yes
+      
     - name: source vars file
       command: sudo ./etc/openvpn/easy-rsa/vars
     - name: Cleanning all old parameters
