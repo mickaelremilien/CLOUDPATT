@@ -11,8 +11,6 @@
     EMAIL:  "{{ lookup('file', '/etc/vpnconf/EMAIL') }}"
 
   tasks:
-    - name: changing interpretor
-      command: ln -s /bin/sh /bin/bash
 
     - name: wheezy backports repositories added
       apt_repository: state=present repo='deb http://ftp.us.debian.org/debian wheezy-backports main'
@@ -203,19 +201,22 @@
         mode: 777
         recurse: yes
       sudo: yes
+     
 
-    - name: source vars file
-      shell: sudo ./etc/openvpn/easy-rsa/vars
-    - name: Cleanning all old parameters
-      command: sudo  ./etc/openvpn/easy-rsa/clean-all
+    - name: change to root 
+      shell: sudo su 
     - name: Generate Diffi Hellman parameters
       command: sudo openssl dhparam -out /etc/ssl/certs/dh2048.pem 2048 creates=/etc/ssl/certs/dh2048.pem
+    - name: source vars file
+      shell: . /etc/openvpn/easy-rsa/vars
+    - name: Cleanning all old parameters
+      shell:  bash /etc/openvpn/easy-rsa/clean-all
     - name: Building Certificate Authority
-      command: sudo ./etc/openvpn/easy-rsa/pkitool --initca
+      shell:  bash /etc/openvpn/easy-rsa/pkitool --initca
     - name: Building server keys
-      command: sudo bash /etc/openvpn/easy-rsa/pkitool --server server
+      shell:  bash /etc/openvpn/easy-rsa/pkitool --server server
     - name: Building client keys
-      command: sudo bash /etc/openvpn/easy-rsa/pkitool client1
+      shell:  bash /etc/openvpn/easy-rsa/pkitool client1
 
     - name: Moving server key ca.crt
       copy:
