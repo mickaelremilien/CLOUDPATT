@@ -89,7 +89,7 @@
         dest=/etc/openvpn/
         owner=cloud
         group=cloud
-        mode=644
+        mode=777
         backup=yes
       sudo: yes
 
@@ -195,24 +195,27 @@
         replace='export KEY_EMAIL="{{EMAIL}}"'
       sudo: yes
 
-    - name: setting easy-rsa folder
-      file:
-        path: /etc/openvpn/easy-rsa/
-        mode: 777
-        recurse: yes
-      sudo: yes
-
+#    - name: setting easy-rsa folder
+#      file:
+ #       path: /etc/openvpn/easy-rsa/
+  #      mode: 777
+   #     recurse: yes
+            
+ #   - name: sudo root
+#      command: sudo su      
+        
     - name: generate openvpn conf
       args: 
         chdir: /etc/openvpn/easy-rsa
         executable: /bin/bash
       shell:
-        . vars
+        source vars
         ./clean-all
         ./build-dh
         ./pkitool --initca
         ./pkitool --server server
         ./pkitool client1
+
 
     #- name: Generate Diffi Hellman parameters
     #  command: sudo openssl dhparam -out /etc/ssl/certs/dh2048.pem 2048 creates=/etc/ssl/certs/dh2048.pem
