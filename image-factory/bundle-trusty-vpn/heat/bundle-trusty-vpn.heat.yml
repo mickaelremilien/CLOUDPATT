@@ -51,14 +51,14 @@ parameters:
       - length: { min: 1, max: 40 }
         description:  EMAIL must be between 1 and 40 characters
 
-  cw_user_password:
-    description: Password for the user named cloudwatt
-    label: cloudwatt user password
-    type: string
-    hidden: true
-    constraints:
-      - length: { min: 4, max: 24 }
-        description: Password must be between 4 and 24 characters
+  #cw_user_password:
+  #  description: Password for the user named cloudwatt
+  #  label: cloudwatt user password
+  #  type: string
+  #  hidden: true
+  #  constraints:
+  #    - length: { min: 4, max: 24 }
+  #      description: Password must be between 4 and 24 characters
   image:
     type: string
     description: Glance Image
