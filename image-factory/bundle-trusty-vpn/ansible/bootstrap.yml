@@ -94,8 +94,13 @@
       sudo: yes
 
     - name: create keys folder
-      file: path=/etc/openvpn/easy-rsa/keys state=directory
-      sudo: yes
+      file: 
+        path=/etc/openvpn/easy-rsa/keys 
+        state=directory
+        owner=cloud 
+        group=cloud 
+        recurse=yes
+      sudo: yes 
 
     - name: Manage openssh firewall with UFW
       ufw: rule=allow name=OpenSSH
@@ -109,16 +114,16 @@
       copy:
         src=roles/vpn_static/files/client.ovpn
         dest=/etc/openvpn/client.ovpn
-        owner=root
-        group=root
+        owner=cloud
+        group=cloud
         mode=0644
         #openvpn/server.conf
     - name: server.conf configuration
       copy:
         src=roles/vpn_static/files/server.conf
         dest=/etc/openvpn/server.conf
-        owner=root
-        group=root
+        owner=cloud
+        group=cloud
         mode=0644
         #sysctl.conf
     - name: sysctl.conf configuration
@@ -141,8 +146,8 @@
       copy:
         src=roles/vpn_static/files/vars
         dest=/etc/openvpn/easy-rsa/vars
-        owner=root
-        group=root
+        owner=cloud
+        group=cloud
         mode=0644
         #ufw
     - name: before.rules configuration
@@ -208,14 +213,20 @@
       args: 
         chdir: /etc/openvpn/easy-rsa
         executable: /bin/bash
-      shell:
+      shell: |
         source vars
         ./clean-all
         ./build-dh
         ./pkitool --initca
         ./pkitool --server server
         ./pkitool client1
-
+        sudo chgrp cloud /var/log/openvpn.log
+        sudo chown cloud /var/log/openvpn.log 
+        cd /etc/openvpn
+        openvpn --genkey --secret ta.key
+        sudo cp /etc/openvpn/easy-rsa/keys/dh2048.pem dh2048.pem
+        sudo chown cloud dh2048.pem
+        sudo chgrp cloud dh2048.pem
 
     #- name: Generate Diffi Hellman parameters
     #  command: sudo openssl dhparam -out /etc/ssl/certs/dh2048.pem 2048 creates=/etc/ssl/certs/dh2048.pem
@@ -256,8 +267,8 @@
         group=cloud
         mode=644
         backup=yes
-      notify: restart openvpn
+      notify: start openvpn
 
   handlers:
-    - name: restart openvpn
+    - name: start openvpn
       service: name=openvpn state=restarted
