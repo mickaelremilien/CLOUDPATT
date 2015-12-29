@@ -3,7 +3,7 @@
   sudo: true
 
   vars:
-    #wp_db_pass: "{{ lookup('password', '/tmp/keystore chars=ascii_letters,digits,hexdigits,punctuation') }}"
+
     COUNTRY:  "{{ lookup('file', '/etc/vpnconf/COUNTRY') }}"
     PROVINCE:  "{{ lookup('file', '/etc/vpnconf/PROVINCE') }}"
     CITY: "{{ lookup('file', '/etc/vpnconf/CITY') }}"
@@ -92,15 +92,6 @@
         mode=777
         backup=yes
       sudo: yes
-
-#    - name: create keys folder
- #     file: 
-  #      path=/etc/openvpn/easy-rsa/keys 
-   #     state=directory
-    #    owner=cloud 
-     #   group=cloud 
-      #  recurse=yes
-      #sudo: yes
 
     - name: Manage openssh firewall with UFW
       ufw: rule=allow name=OpenSSH
@@ -204,23 +195,17 @@
         replace='export KEY_EMAIL="{{EMAIL}}"'
       sudo: yes
 
-#    - name: setting easy-rsa folder
-#      file:
- #       path: /etc/openvpn/easy-rsa/
-  #      mode: 777
-   #     recurse: yes
-
     - name: create keys folder
-      file: 
-        path=/etc/openvpn/easy-rsa/keys 
+      file:
+        path=/etc/openvpn/easy-rsa/keys
         state=directory
-        owner=cloud 
-        group=cloud 
+        owner=cloud
+        group=cloud
         recurse=yes
       sudo: yes
-            
+
     - name: generate openvpn conf1
-      args: 
+      args:
         chdir: /etc/openvpn/easy-rsa
         executable: /bin/bash
       shell: |
@@ -232,14 +217,12 @@
         ./pkitool client1
 
     - name: generate openvpn conf3
-      args: 
+      args:
         chdir: /etc/openvpn/easy-rsa
         executable: /bin/bash
       shell: |
         sudo chgrp cloud /etc/openvpn/easy-rsa/keys/
         sudo chown cloud /etc/openvpn/easy-rsa/keys/
-        #sudo chgrp cloud /var/log/openvpn.log
-        #sudo chown cloud /var/log/openvpn.log 
         cd /etc/openvpn
         openvpn --genkey --secret ta.key
         sudo cp /etc/openvpn/easy-rsa/keys/dh2048.pem dh2048.pem
@@ -274,6 +257,19 @@
         mode=644
         backup=yes
       notify: start openvpn
+
+    - name: pack config client
+      args:
+        chdir: /etc/openvpn/easy-rsa
+        executable: /bin/bash
+      shell: |
+        sudo mkdir configclient
+        gzip client1.crt client1.key ta.key ca.crt client.ovpn > configclient1.gz
+        sudo cp /etc/openvpn/easy-rsa/keys/client1.crt configclient/client1.crt
+        sudo cp /etc/openvpn/easy-rsa/keys/client1.key configclient/client1.key
+        sudo cp /etc/openvpn/ta.key configclient/ta.key
+        sudo cp /etc/openvpn/client.ovpn configclient/client.ovpn
+        gzip configclient
 
   handlers:
     - name: start openvpn
