@@ -93,14 +93,14 @@
         backup=yes
       sudo: yes
 
-    - name: create keys folder
-      file: 
-        path=/etc/openvpn/easy-rsa/keys 
-        state=directory
-        owner=cloud 
-        group=cloud 
-        recurse=yes
-      sudo: yes 
+#    - name: create keys folder
+ #     file: 
+  #      path=/etc/openvpn/easy-rsa/keys 
+   #     state=directory
+    #    owner=cloud 
+     #   group=cloud 
+      #  recurse=yes
+      #sudo: yes
 
     - name: Manage openssh firewall with UFW
       ufw: rule=allow name=OpenSSH
@@ -118,6 +118,7 @@
         group=cloud
         mode=0644
         #openvpn/server.conf
+
     - name: server.conf configuration
       copy:
         src=roles/vpn_static/files/server.conf
@@ -126,6 +127,7 @@
         group=cloud
         mode=0644
         #sysctl.conf
+
     - name: sysctl.conf configuration
       copy:
         src=roles/vpn_static/files/sysctl.conf
@@ -134,6 +136,7 @@
         group=root
         mode=0644
         #ufw/before.rules
+
     - name: before.rules configuration
       copy:
         src=roles/vpn_static/files/before.rules
@@ -142,6 +145,7 @@
         group=root
         mode=0755
         #easy-rsa/vars
+
     - name: var configuration
       copy:
         src=roles/vpn_static/files/vars
@@ -205,11 +209,17 @@
  #       path: /etc/openvpn/easy-rsa/
   #      mode: 777
    #     recurse: yes
+
+    - name: create keys folder
+      file: 
+        path=/etc/openvpn/easy-rsa/keys 
+        state=directory
+        owner=cloud 
+        group=cloud 
+        recurse=yes
+      sudo: yes
             
- #   - name: sudo root
-#      command: sudo su      
-        
-    - name: generate openvpn conf
+    - name: generate openvpn conf1
       args: 
         chdir: /etc/openvpn/easy-rsa
         executable: /bin/bash
@@ -220,26 +230,22 @@
         ./pkitool --initca
         ./pkitool --server server
         ./pkitool client1
-        sudo chgrp cloud /var/log/openvpn.log
-        sudo chown cloud /var/log/openvpn.log 
+
+    - name: generate openvpn conf3
+      args: 
+        chdir: /etc/openvpn/easy-rsa
+        executable: /bin/bash
+      shell: |
+        sudo chgrp cloud /etc/openvpn/easy-rsa/keys/
+        sudo chown cloud /etc/openvpn/easy-rsa/keys/
+        #sudo chgrp cloud /var/log/openvpn.log
+        #sudo chown cloud /var/log/openvpn.log 
         cd /etc/openvpn
         openvpn --genkey --secret ta.key
         sudo cp /etc/openvpn/easy-rsa/keys/dh2048.pem dh2048.pem
         sudo chown cloud dh2048.pem
         sudo chgrp cloud dh2048.pem
 
-    #- name: Generate Diffi Hellman parameters
-    #  command: sudo openssl dhparam -out /etc/ssl/certs/dh2048.pem 2048 creates=/etc/ssl/certs/dh2048.pem
-    #- name: source vars file
-    #  shell: . /etc/openvpn/easy-rsa/vars
-    #- name: Cleanning all old parameters
-    #  shell:  bash /etc/openvpn/easy-rsa/clean-all
-    #- name: Building Certificate Authority
-    #  shell:  bash /etc/openvpn/easy-rsa/pkitool --initca
-    #- name: Building server keys
-    #  shell:  bash /etc/openvpn/easy-rsa/pkitool --server server
-    #- name: Building client keys
-    #  shell:  bash /etc/openvpn/easy-rsa/pkitool client1
 
     - name: Moving server key ca.crt
       copy:
