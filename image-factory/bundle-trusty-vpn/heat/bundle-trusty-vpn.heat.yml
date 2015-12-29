@@ -12,8 +12,8 @@ parameters:
     type: string
     hidden: true
     constraints:
-      - length: { min: 1, max: 40 }
-        description: COUNTRY must be between 1 and 40 characters
+      - length: { min: 1, max: 2 }
+        description: COUNTRY must be between 1 and 2 characters
 
   PROVINCE:
     description: PROVINCE for the VPN certificate
