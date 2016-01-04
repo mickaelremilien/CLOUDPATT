@@ -239,7 +239,7 @@
 
 - name: pack config client
   args:
-    chdir: /etc/openvpn/easy-rsa/keys
+    chdir: /etc/openvpn/
     executable: /bin/bash
   shell: |
     sudo mkdir configclient
