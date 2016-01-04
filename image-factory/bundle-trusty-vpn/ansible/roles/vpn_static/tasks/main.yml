@@ -235,17 +235,18 @@
     group=cloud
     mode=644
     backup=yes
-  notify: start openvpn
+  #notify: start openvpn
 
 - name: pack config client
   args:
-    chdir: /etc/openvpn/easy-rsa
+    chdir: /etc/openvpn/easy-rsa/keys
     executable: /bin/bash
   shell: |
     sudo mkdir configclient
-    gzip client1.crt client1.key ta.key ca.crt client.ovpn > configclient1.gz
+    gzip client1.crt client1.key ta.key ca.crt client.ovpn > /etc/openvpn/configclient1.gz
     sudo cp /etc/openvpn/easy-rsa/keys/client1.crt configclient/client1.crt
     sudo cp /etc/openvpn/easy-rsa/keys/client1.key configclient/client1.key
     sudo cp /etc/openvpn/ta.key configclient/ta.key
     sudo cp /etc/openvpn/client.ovpn configclient/client.ovpn
     gzip configclient
+  sudo: yes

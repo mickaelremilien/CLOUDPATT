@@ -1,7 +1,7 @@
 ---
 vpn_static:
-  COUNTRY:  "{{ lookup('file', '/etc/vpnconf/COUNTRY') }}"
-  PROVINCE:  "{{ lookup('file', '/etc/vpnconf/PROVINCE') }}"
-  CITY: "{{ lookup('file', '/etc/vpnconf/CITY') }}"
-  ORGANISATION: "{{ lookup('file', '/etc/vpnconf/ORGANISATION') }}"
-  EMAIL:  "{{ lookup('file', '/etc/vpnconf/EMAIL') }}"
+COUNTRY:  "{{ lookup('file', '/etc/vpnconf/COUNTRY') }}"
+PROVINCE:  "{{ lookup('file', '/etc/vpnconf/PROVINCE') }}"
+CITY: "{{ lookup('file', '/etc/vpnconf/CITY') }}"
+ORGANISATION: "{{ lookup('file', '/etc/vpnconf/ORGANISATION') }}"
+EMAIL:  "{{ lookup('file', '/etc/vpnconf/EMAIL') }}"
