@@ -27,9 +27,9 @@
 
 - name: cw user present
   user:
-    name=cloudwatt
+    name=cloud
     shell=/bin/bash
-    group=cloudwatt
+    group=cloud
     groups=sudo
     append=yes
 
@@ -37,8 +37,8 @@
   file:
     path="/home/cloudwatt/{{ item }}"
     state=directory
-    owner=cloudwatt
-    group=cloudwatt
+    owner=cloud
+    group=cloud
     mode=0755
   with_items:
     - Desktop
