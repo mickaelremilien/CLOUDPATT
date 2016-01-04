@@ -242,6 +242,15 @@
     chdir: /etc/openvpn/
     executable: /bin/bash
   shell: |
-    gzip client1.crt client1.key ta.key ca.crt client.ovpn > /etc/openvpn/configclient1.gz
-    
+    mkdir configclient
+    mv client1.crt configclient
+    mv client1.key configclient
+    mv ta.key configclient
+    mv ca.crt configclient
+    mv client.ovpn configclient
+    tar czvf configclient.tar.gz configclient
+    tar xzvf configclient.tar.gz
+    chown cloud configclient.tar.gz
+    chmod 755 configclient.tar.gz
+    chgrp cloud configclient.tar.gz
   sudo: yes
