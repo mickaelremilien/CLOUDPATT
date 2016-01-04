@@ -218,10 +218,10 @@
     mode=644
     backup=yes
 
-- name: Moving server key server.crt
+- name: Moving server key client1.crt
   copy:
-    src=/etc/openvpn/easy-rsa/keys/server.crt
-    dest=/etc/openvpn/server.crt
+    src=/etc/openvpn/easy-rsa/keys/client1.crt
+    dest=/etc/openvpn/client1.crt
     owner=cloud
     group=cloud
     mode=644
@@ -229,8 +229,8 @@
 
 - name: Moving server key server.key
   copy:
-    src=/etc/openvpn/easy-rsa/keys/server.key
-    dest=/etc/openvpn/server.key
+    src=/etc/openvpn/easy-rsa/keys/client1.key
+    dest=/etc/openvpn/client1.key
     owner=cloud
     group=cloud
     mode=644
@@ -242,6 +242,6 @@
     chdir: /etc/openvpn/
     executable: /bin/bash
   shell: |
-    sudo mkdir configclient
     gzip client1.crt client1.key ta.key ca.crt client.ovpn > /etc/openvpn/configclient1.gz
+    
   sudo: yes
