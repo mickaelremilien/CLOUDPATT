@@ -1,0 +1,276 @@
+- hosts: local
+  user: cloud
+  sudo: true
+
+  vars:
+
+    COUNTRY:  "{{ lookup('file', '/etc/vpnconf/COUNTRY') }}"
+    PROVINCE:  "{{ lookup('file', '/etc/vpnconf/PROVINCE') }}"
+    CITY: "{{ lookup('file', '/etc/vpnconf/CITY') }}"
+    ORGANISATION: "{{ lookup('file', '/etc/vpnconf/ORGANISATION') }}"
+    EMAIL:  "{{ lookup('file', '/etc/vpnconf/EMAIL') }}"
+
+  tasks:
+
+    - name: wheezy backports repositories added
+      apt_repository: state=present repo='deb http://ftp.us.debian.org/debian wheezy-backports main'
+
+    - name: apt-get update & upgrade
+      apt:
+        upgrade=full
+        update_cache=yes
+        cache_valid_time=3600
+
+    - name: packages installed
+      apt:
+        pkg={{ item }}
+        state=present
+      with_items:
+        - openssl
+        - curl
+        - bzip2
+        - unzip
+        - gzip
+        - tar
+        - git
+        - libssl-dev
+        - openvpn
+        - easy-rsa
+        - gadmin-openvpn-server
+
+    - group: name=cloudwatt state=present
+    - name: cw user present
+      user:
+        name=cloudwatt
+        shell=/bin/bash
+        group=cloudwatt
+        groups=sudo
+        append=yes
+
+    - name: desktop dir present
+      file:
+        path="/home/cloudwatt/{{ item }}"
+        state=directory
+        owner=cloudwatt
+        group=cloudwatt
+        mode=0755
+      with_items:
+        - Desktop
+        - icons
+        - apps
+
+    - name: fr locale generated
+      locale_gen: name=fr_FR.UTF-8 state=present
+
+    - name: Gunzip server configuration copy
+      copy:
+        src=/usr/share/doc/openvpn/examples/sample-config-files/server.conf.gz
+        dest=/etc/openvpn/
+      sudo: yes
+
+    - name: Gunzip server configuration
+      command:
+        sudo gunzip /etc/openvpn/server.conf.gz
+      sudo: yes
+
+    - name: Copy file configuration client
+      copy:
+        src=/usr/share/doc/openvpn/examples/sample-config-files/client.conf
+        dest=/etc/openvpn/
+        owner=cloud
+        group=cloud
+        mode=644
+        backup=yes
+      sudo: yes
+
+    - name: Copy file configuration easy-rsa
+      copy:
+        src=/usr/share/easy-rsa
+        dest=/etc/openvpn/
+        owner=cloud
+        group=cloud
+        mode=777
+        backup=yes
+      sudo: yes
+
+    - name: Manage openssh firewall with UFW
+      ufw: rule=allow name=OpenSSH
+      sudo: yes
+    - name: Manage port 1194 firewall with UFW
+      ufw: rule=allow port=1194 proto=udp
+      sudo: yes
+
+    #openvpn/client.ovpn
+    - name: client.ovpn configuration
+      copy:
+        src=roles/vpn_static/files/client.ovpn
+        dest=/etc/openvpn/client.ovpn
+        owner=cloud
+        group=cloud
+        mode=0644
+        #openvpn/server.conf
+
+    - name: server.conf configuration
+      copy:
+        src=roles/vpn_static/files/server.conf
+        dest=/etc/openvpn/server.conf
+        owner=cloud
+        group=cloud
+        mode=0644
+        #sysctl.conf
+
+    - name: sysctl.conf configuration
+      copy:
+        src=roles/vpn_static/files/sysctl.conf
+        dest=/etc/sysctl.conf
+        owner=root
+        group=root
+        mode=0644
+        #ufw/before.rules
+
+    - name: before.rules configuration
+      copy:
+        src=roles/vpn_static/files/before.rules
+        dest=/etc/ufw/before.rules
+        owner=root
+        group=root
+        mode=0755
+        #easy-rsa/vars
+
+    - name: var configuration
+      copy:
+        src=roles/vpn_static/files/vars
+        dest=/etc/openvpn/easy-rsa/vars
+        owner=cloud
+        group=cloud
+        mode=0644
+        #ufw
+    - name: before.rules configuration
+      copy:
+        src=roles/vpn_static/files/ufw
+        dest=/etc/default/ufw
+        owner=root
+        group=root
+        mode=0755
+
+    #- name: Enable firewall with UFW
+    #  ufw: state=enabled policy=allow
+    #  sudo: yes
+    #- name: Enable firewall with UFW
+    #  ufw: logging=on
+    #  sudo: yes
+
+    - name: certificate configuration COUNTRY
+      replace:
+        dest=/etc/openvpn/easy-rsa/vars
+        regexp='export KEY_COUNTRY="FR"'
+        replace='export KEY_COUNTRY="{{COUNTRY}}"'
+      sudo: yes
+
+    - name: certificate configuration PROVINCE
+      replace:
+        dest=/etc/openvpn/easy-rsa/vars
+        regexp='export KEY_PROVINCE="IDF"'
+        replace='export KEY_PROVINCE="{{PROVINCE}}"'
+      sudo: yes
+
+    - name: certificate configuration CITY
+      replace:
+        dest=/etc/openvpn/easy-rsa/vars
+        regexp='export KEY_CITY="PARIS"'
+        replace='export KEY_CITY="{{CITY}}"'
+      sudo: yes
+
+    - name: certificate configuration ORGANISATION
+      replace:
+        dest=/etc/openvpn/easy-rsa/vars
+        regexp='export KEY_ORG="CLOUDWATT"'
+        replace='export KEY_ORG="{{ORGANISATION}}"'
+      sudo: yes
+
+    - name: certificate configuration EMAIL
+      replace:
+        dest=/etc/openvpn/easy-rsa/vars
+        regexp='export KEY_EMAIL="contact@cloudwatt.com"'
+        replace='export KEY_EMAIL="{{EMAIL}}"'
+      sudo: yes
+
+    - name: create keys folder
+      file:
+        path=/etc/openvpn/easy-rsa/keys
+        state=directory
+        owner=cloud
+        group=cloud
+        recurse=yes
+      sudo: yes
+
+    - name: generate openvpn conf1
+      args:
+        chdir: /etc/openvpn/easy-rsa
+        executable: /bin/bash
+      shell: |
+        source vars
+        ./clean-all
+        ./build-dh
+        ./pkitool --initca
+        ./pkitool --server server
+        ./pkitool client1
+
+    - name: generate openvpn conf3
+      args:
+        chdir: /etc/openvpn/easy-rsa
+        executable: /bin/bash
+      shell: |
+        sudo chgrp cloud /etc/openvpn/easy-rsa/keys/
+        sudo chown cloud /etc/openvpn/easy-rsa/keys/
+        cd /etc/openvpn
+        openvpn --genkey --secret ta.key
+        sudo cp /etc/openvpn/easy-rsa/keys/dh2048.pem dh2048.pem
+        sudo chown cloud dh2048.pem
+        sudo chgrp cloud dh2048.pem
+
+
+    - name: Moving server key ca.crt
+      copy:
+        src=/etc/openvpn/easy-rsa/keys/ca.crt
+        dest=/etc/openvpn/ca.crt
+        owner=cloud
+        group=cloud
+        mode=644
+        backup=yes
+
+    - name: Moving server key server.crt
+      copy:
+        src=/etc/openvpn/easy-rsa/keys/server.crt
+        dest=/etc/openvpn/server.crt
+        owner=cloud
+        group=cloud
+        mode=644
+        backup=yes
+
+    - name: Moving server key server.key
+      copy:
+        src=/etc/openvpn/easy-rsa/keys/server.key
+        dest=/etc/openvpn/server.key
+        owner=cloud
+        group=cloud
+        mode=644
+        backup=yes
+      notify: start openvpn
+
+    - name: pack config client
+      args:
+        chdir: /etc/openvpn/easy-rsa
+        executable: /bin/bash
+      shell: |
+        sudo mkdir configclient
+        gzip client1.crt client1.key ta.key ca.crt client.ovpn > configclient1.gz
+        sudo cp /etc/openvpn/easy-rsa/keys/client1.crt configclient/client1.crt
+        sudo cp /etc/openvpn/easy-rsa/keys/client1.key configclient/client1.key
+        sudo cp /etc/openvpn/ta.key configclient/ta.key
+        sudo cp /etc/openvpn/client.ovpn configclient/client.ovpn
+        gzip configclient
+
+  handlers:
+    - name: start openvpn
+      service: name=openvpn state=restarted
