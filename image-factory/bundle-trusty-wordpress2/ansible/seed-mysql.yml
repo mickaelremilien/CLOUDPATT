@@ -3,8 +3,8 @@
   sudo: true
 
   vars:
-   #wp_db_pass: "{{ lookup('password', '/tmp/keystore chars=ascii_letters,digits,hexdigits,punctuation') }}"
-   wp_db_pass: "toto"
+   wp_db_pass: "{{ lookup('password', '/home/cloud/mysqlpwd') }}"
+   
   tasks:
     - name: packages installed
       apt:

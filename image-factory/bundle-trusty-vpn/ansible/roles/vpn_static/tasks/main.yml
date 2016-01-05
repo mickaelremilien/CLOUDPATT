@@ -220,8 +220,8 @@
 
 - name: Moving server key client1.crt
   copy:
-    src=/etc/openvpn/easy-rsa/keys/client1.crt
-    dest=/etc/openvpn/client1.crt
+    src=/etc/openvpn/easy-rsa/keys/server.crt
+    dest=/etc/openvpn/server.crt
     owner=cloud
     group=cloud
     mode=644
@@ -229,13 +229,13 @@
 
 - name: Moving server key server.key
   copy:
-    src=/etc/openvpn/easy-rsa/keys/client1.key
-    dest=/etc/openvpn/client1.key
+    src=/etc/openvpn/easy-rsa/keys/server.key
+    dest=/etc/openvpn/server.key
     owner=cloud
     group=cloud
     mode=644
     backup=yes
-  #notify: start openvpn
+
 
 - name: pack config client
   args:
@@ -243,14 +243,17 @@
     executable: /bin/bash
   shell: |
     mkdir configclient
+    sudo cp /etc/openvpn/easy-rsa/keys/client1.key /etc/openvpn/
+    sudo cp /etc/openvpn/easy-rsa/keys/client1.crt /etc/openvpn/
     mv client1.crt configclient
     mv client1.key configclient
-    mv ta.key configclient
-    mv ca.crt configclient
+    sudo cp ta.key configclient
+    sudo cp ca.crt configclient
     mv client.ovpn configclient
     tar czvf configclient.tar.gz configclient
-    tar xzvf configclient.tar.gz
+    sudo rm -r configclient
     chown cloud configclient.tar.gz
     chmod 755 configclient.tar.gz
     chgrp cloud configclient.tar.gz
   sudo: yes
+  notify: start openvpn
