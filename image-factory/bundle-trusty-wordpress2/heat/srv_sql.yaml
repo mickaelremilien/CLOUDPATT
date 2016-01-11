@@ -36,12 +36,12 @@ parameters:
   security_groups:
     type: comma_delimited_list
 
-  mysqlpwd:
+  themysqlpwd:
     description: Basic auth password for mysql users
     label: Mysql Auth password
     type: string
     hidden: true
-    constraint:
+    constraints:
       - length: { min: 6, max: 24 }
         description: Password must be between 6 and 24 characters
 
@@ -82,26 +82,27 @@ resources:
       user_data:
         str_replace:
           template: |
-        #!/usr/bin/env bash
-        echo "$(date) - START" >> /var/log/sql_srv.log
-        export DEBIAN_FRONTEND=noninteractive
-        apt-get update 2>&1 >> /var/log/sql_srv.log
-        echo "$(date) - update done" >> /var/log/sql_srv.log
-        apt-get -o Dpkg::Options::="--force-confold" upgrade -y 2>&1 >> /var/log/sql_srv.log
-        echo "$(date) - upgrade done" >> /var/log/sql_srv.log
-        mkdir -p /var/lib/mysql
-        mkfs.ext4 /dev/vdb
-        echo '/dev/vdb /var/lib/mysql ext4 defaults 0 2' >> /etc/fstab
-        mount -a
-        mkdir /etc/ansible
-        echo "[local]" >> /etc/ansible/hosts
-        echo "127.0.0.1 ansible_connection=local" >> /etc/ansible/hosts
-        cd /home/cloud
-        echo -n "$mysqlpwd$" >> /home/cloud/mysqlpwd
-        git clone  https://github.com/mickaelremilien/CLOUDPATT.git
-        sudo ansible-playbook /home/cloud/CLOUDPATT/image-factory/bundle-trusty-wordpress2/ansible/seed-mysql.yml
-      params:
-        $mysqlpwd$: { get_param: mysqlpwd }
+            #!/usr/bin/env bash
+            echo "$(date) - START" >> /var/log/sql_srv.log
+            export DEBIAN_FRONTEND=noninteractive
+            apt-get update 2>&1 >> /var/log/sql_srv.log
+            echo "$(date) - update done" >> /var/log/sql_srv.log
+            apt-get -o Dpkg::Options::="--force-confold" upgrade -y 2>&1 >> /var/log/sql_srv.log
+            echo "$(date) - upgrade done" >> /var/log/sql_srv.log
+            mkdir -p /var/lib/mysql
+            mkfs.ext4 /dev/vdb
+            echo '/dev/vdb /var/lib/mysql ext4 defaults 0 2' >> /etc/fstab
+            mount -a
+            mkdir /etc/ansible
+            echo "[local]" >> /etc/ansible/hosts
+            echo "127.0.0.1 ansible_connection=local" >> /etc/ansible/hosts
+            cd /home/cloud
+            echo  "$mysqlpwd$" > /home/cloud/mysqlpwd
+            git clone  https://github.com/mickaelremilien/CLOUDPATT.git
+            sudo ansible-playbook /home/cloud/CLOUDPATT/image-factory/bundle-trusty-wordpress2/ansible/seed-mysql.yml
+          params:
+            $mysqlpwd$: { get_param: themysqlpwd }
+
   volume:
     type: OS::Cinder::Volume
     properties:

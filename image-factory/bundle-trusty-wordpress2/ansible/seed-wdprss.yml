@@ -4,9 +4,8 @@
 
   vars:
     wp_db_name: wordpress
-    wp_db_pass: "toto"
-    #wp_db_pass: "{{ lookup('password', '/root/keystore chars=ascii_letters,digits,hexdigits,punctuation') }}"
-    #wp_mysql_lb: "{{ lookup('file', '/var/log/sql_vip') }}"
+    wp_db_pass: "{{ lookup('file', '/home/cloud/mysqlpwd') }}"
+    wp_mysql_lb: "{{ lookup('file', '/var/log/sql_vip') }}"
 
   tasks:
     - name: packages installed

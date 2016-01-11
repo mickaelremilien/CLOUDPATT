@@ -4,7 +4,7 @@
 
   vars:
    wp_db_pass: "{{ lookup('password', '/home/cloud/mysqlpwd') }}"
-   
+
   tasks:
     - name: packages installed
       apt:
@@ -33,6 +33,13 @@
         priv=wordpress.*:ALL
         state=present
 
+    - name: mysql usertest is created
+      mysql_user:
+        name=wordpress
+        host="10.1.2.2"
+        password="{{ wp_db_pass }}"
+        priv=wordpress.*:ALL
+        state=present
     - name: mysql user2 is created
       mysql_user:
         name=wordpress

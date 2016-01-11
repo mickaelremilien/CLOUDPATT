@@ -35,6 +35,15 @@ parameters:
   security_groups:
     type: comma_delimited_list
 
+  themysqlpwd:
+    description: Basic auth password for mysql users
+    label: Mysql Auth password
+    type: string
+    hidden: true
+    constraints:
+      - length: { min: 6, max: 24 }
+        description: Password must be between 6 and 24 characters
+
 resources:
   pool_member:
     depends_on: [instance]
@@ -72,10 +81,11 @@ resources:
             cd /home/cloud/
             git clone  https://github.com/mickaelremilien/CLOUDPATT.git
             sudo ansible-playbook /home/cloud/CLOUDPATT/image-factory/bundle-trusty-wordpress2/ansible/seed-wdprss.yml
-            echo "$sql_ip$" > /var/log/sql_vip
+            echo  "$mysqlpwd$" >> /home/cloud/mysqlpwd
+            echo "$sql_ip$" >> /var/log/sql_vip
           params:
             $sql_ip$: { get_param: [sql_lb_pool, vip, address]}
-
+            $mysqlpwd$: { get_param: themysqlpwd }
 outputs:
   first_address:
     description: IP address of the first interface

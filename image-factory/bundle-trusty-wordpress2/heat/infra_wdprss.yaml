@@ -30,7 +30,14 @@ parameters:
       - length: { min: 6, max: 24 }
         description: Password must be between 6 and 24 characters
 
-
+  themysqlpwd:
+    description: Basic auth password for mysql users
+    label: Mysql Auth password
+    type: string
+    hidden: true
+    constraints:
+      - length: { min: 6, max: 24 }
+        description: Password must be between 6 and 24 characters
 
 resources:
 
@@ -103,7 +110,7 @@ resources:
   stack_public_entry_point:
     type: OS::Heat::CloudConfig
     properties:
-      cloud_config:
+       cloud_config:
         write_files:
         - path: /etc/stack_public_entry_point
           permissions: '0755'
@@ -132,19 +139,7 @@ resources:
             echo -n "$password$" >> /etc/wdpasswd/wdpass
           params:
             $password$: { get_param: password }
-  server:
-    type: OS::Nova::Server
-    properties:
-      key_name: { get_param: keypair_name }
-      image: { get_param: image }
-      flavor: { get_param: flavor }
-      networks:
-        - network: {get_resource: internal_net}
-      security_groups:
-        - { get_resource: security_group }
-      user_data_format: RAW
-      user_data:
-        get_resource: server_init
+
 
   web_lb_pool:
     depends_on: [sql_lb_pool]
@@ -169,12 +164,12 @@ resources:
       subnet_id: {get_resource: internal_snet2}
       lb_method: ROUND_ROBIN
       vip:
-        protocol_port: 80
+        protocol_port: 3306
 
   sql_lb_lb:
     type: OS::Neutron::LoadBalancer
     properties:
-      protocol_port: 80
+      protocol_port: 3306
       pool_id: {get_resource: sql_lb_pool}
 
   web_secgroup:
@@ -219,8 +214,9 @@ resources:
       resource:
         type: srv_wdprss.yaml
         properties:
-          sql_lb_pool: { get_resource: sql_lb_pool}
-          lb_pool: { get_resource: web_lb_pool}
+          themysqlpwd: {get_param: themysqlpwd}
+          sql_lb_pool: {get_resource: sql_lb_pool}
+          lb_pool: {get_resource: web_lb_pool}
           lb_port: 80
           flavor: {get_param: flavor}
           image: {get_param: image}
@@ -237,6 +233,7 @@ resources:
       resource:
         type: srv_sql.yaml
         properties:
+          themysqlpwd: {get_param: themysqlpwd}
           lb_pool: {get_resource: sql_lb_pool}
           lb_port: 3306
           flavor: {get_param: flavor}
@@ -245,6 +242,20 @@ resources:
           network_id: {get_resource: internal_net2}
           security_groups:
             - {get_resource: sql_secgroup}
+
+  server:
+    type: OS::Nova::Server
+    properties:
+      key_name: { get_param: keypair_name }
+      image: { get_param: image }
+      flavor: { get_param: flavor }
+      networks:
+        - network: {get_resource: internal_net}
+      security_groups:
+        - { get_resource: security_group }
+      user_data_format: RAW
+      user_data:
+        get_resource: server_init
 
   web_scaleup_policy:
     type: OS::Heat::ScalingPolicy
