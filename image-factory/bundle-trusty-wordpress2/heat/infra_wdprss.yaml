@@ -66,6 +66,7 @@ resources:
         - { direction: ingress, protocol: TCP, port_range_min: 80, port_range_max: 80 }
         - { direction: ingress, protocol: TCP, port_range_min: 443, port_range_max: 443 }
         - { direction: ingress, protocol: ICMP }
+        - { direction: egress, protocol: TCP, port_range_min: 80, port_range_max: 80 }
         - { direction: egress, protocol: ICMP }
         - { direction: egress, protocol: TCP }
         - { direction: egress, protocol: UDP }
@@ -170,6 +171,7 @@ resources:
     type: OS::Neutron::LoadBalancer
     properties:
       protocol_port: 3306
+      protocol_port: 4567
       pool_id: {get_resource: sql_lb_pool}
 
   web_secgroup:
@@ -205,6 +207,10 @@ resources:
           remote_group_id: {get_resource: web_secgroup}
           port_range_min: 22
           port_range_max: 22
+        - protocol: tcp
+          remote_ip_prefix: {get_attr: [sql_lb_pool, vip, address]}
+          port_range_min: 4567
+          port_range_max: 4567
 
   web_asg:
     type: OS::Heat::AutoScalingGroup
@@ -228,7 +234,7 @@ resources:
   sql_asg:
     type: OS::Heat::AutoScalingGroup
     properties:
-      min_size: 2
+      min_size: 3
       max_size: 5
       resource:
         type: srv_sql.yaml

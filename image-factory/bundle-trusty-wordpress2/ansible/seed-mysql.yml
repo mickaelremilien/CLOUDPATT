@@ -3,7 +3,7 @@
   sudo: true
 
   vars:
-   wp_db_pass: "{{ lookup('password', '/home/cloud/mysqlpwd') }}"
+   wp_db_pass: "{{ lookup('file', '/home/cloud/mysqlpwd') }}"
 
   tasks:
     - name: packages installed
@@ -33,6 +33,14 @@
         priv=wordpress.*:ALL
         state=present
 
+    - name: mysql userroot is created
+      mysql_user:
+        name=root
+        host="localhost"
+        password="rootroot"
+        priv=*.*:ALL
+        state=present
+
     - name: mysql usertest is created
       mysql_user:
         name=wordpress
@@ -40,6 +48,7 @@
         password="{{ wp_db_pass }}"
         priv=wordpress.*:ALL
         state=present
+
     - name: mysql user2 is created
       mysql_user:
         name=wordpress
