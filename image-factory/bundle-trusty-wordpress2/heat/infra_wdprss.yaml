@@ -21,6 +21,7 @@ parameters:
     description: Public network ID
     default: 6ea98324-0f14-49f6-97c0-885d1b8dc517
 
+
   password:
     description: Basic auth password for all users
     label: Apache2 Auth Password
@@ -166,12 +167,17 @@ resources:
       lb_method: ROUND_ROBIN
       vip:
         protocol_port: 3306
+        protocol_port: 4567
+        protocol_port: 4568
+        protocol_port: 4444
 
   sql_lb_lb:
     type: OS::Neutron::LoadBalancer
     properties:
       protocol_port: 3306
       protocol_port: 4567
+      protocol_port: 4568
+      protocol_port: 4444
       pool_id: {get_resource: sql_lb_pool}
 
   web_secgroup:
@@ -211,6 +217,14 @@ resources:
           remote_ip_prefix: {get_attr: [sql_lb_pool, vip, address]}
           port_range_min: 4567
           port_range_max: 4567
+        - protocol: tcp
+          remote_ip_prefix: {get_attr: [sql_lb_pool, vip, address]}
+          port_range_min: 4568
+          port_range_max: 4568
+        - protocol: tcp
+          remote_ip_prefix: {get_attr: [sql_lb_pool, vip, address]}
+          port_range_min: 4444
+          port_range_max: 4444
 
   web_asg:
     type: OS::Heat::AutoScalingGroup
@@ -242,6 +256,9 @@ resources:
           themysqlpwd: {get_param: themysqlpwd}
           lb_pool: {get_resource: sql_lb_pool}
           lb_port: 3306
+          lb_port: 4444
+          lb_port: 4567
+          lb_port: 4568
           flavor: {get_param: flavor}
           image: {get_param: image}
           key_name: {get_param: keypair_name}

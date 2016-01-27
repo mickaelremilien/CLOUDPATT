@@ -36,7 +36,7 @@
     - name: mysql userroot is created
       mysql_user:
         name=root
-        host="localhost"
+        host="127.0.0.1"
         password="rootroot"
         priv=*.*:ALL
         state=present
