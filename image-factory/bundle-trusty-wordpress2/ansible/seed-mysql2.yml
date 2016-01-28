@@ -28,13 +28,6 @@
         sudo dpkg -i mysql-server-wsrep-5.6.16-25.5-amd64.deb
       sudo: yes
 
-    - name: mysql userroot is created
-      mysql_user:
-        name=root
-        host="127.0.0.1"
-        password="rootroot"
-        priv=*.*:ALL
-        state=present
 
     - name: mysql started
       service: name=mysql state=restarted enabled=yes
