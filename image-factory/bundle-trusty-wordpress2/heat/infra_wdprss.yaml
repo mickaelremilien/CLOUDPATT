@@ -214,15 +214,12 @@ resources:
           port_range_min: 22
           port_range_max: 22
         - protocol: tcp
-          remote_ip_prefix: {get_attr: [sql_lb_pool, vip, address]}
           port_range_min: 4567
           port_range_max: 4567
         - protocol: tcp
-          remote_ip_prefix: {get_attr: [sql_lb_pool, vip, address]}
           port_range_min: 4568
           port_range_max: 4568
         - protocol: tcp
-          remote_ip_prefix: {get_attr: [sql_lb_pool, vip, address]}
           port_range_min: 4444
           port_range_max: 4444
 
