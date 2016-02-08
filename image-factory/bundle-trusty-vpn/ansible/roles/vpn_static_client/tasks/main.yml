@@ -1,0 +1,47 @@
+---
+- name: wheezy backports repositories added
+  apt_repository: state=present repo='deb http://ftp.us.debian.org/debian wheezy-backports main'
+
+- name: apt-get update & upgrade
+  apt:
+    upgrade=full
+    update_cache=yes
+    cache_valid_time=3600
+
+- name: enable IPv4 forwarding
+  shell: sysctl net.ipv4.ip_forward=1
+
+- name: enable IPv6 forwarding
+  shell: sysctl net.ipv6.conf.all.forwarding=1
+
+- name: packages installed
+  apt:
+    pkg={{ item }}
+    state=present
+  with_items:
+    - openssl
+    - curl
+    - bzip2
+    - unzip
+    - gzip
+    - tar
+    - git
+    - libssl-dev
+    - openvpn
+    - traceroute
+    - easy-rsa
+    - gadmin-openvpn-server
+
+- name: decompress configclient.tar.gz
+  unarchive: src=/etc/openvpn/configclient.tar.gz dest=/etc/openvpn/
+  sudo: yes
+
+- name: modification configclient
+  replace:
+    dest=/etc/openvpn/configclient/client.conf
+    regexp='X.X.X.X'
+    replace='"{{ip_server}}"'
+  sudo: yes
+
+- name: fr locale generated
+  locale_gen: name=fr_FR.UTF-8 state=present

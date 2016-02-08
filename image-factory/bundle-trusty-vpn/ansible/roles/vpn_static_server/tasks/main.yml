@@ -28,6 +28,7 @@
     - git
     - libssl-dev
     - openvpn
+    - traceroute
     - easy-rsa
     - gadmin-openvpn-server
 
@@ -88,7 +89,7 @@
 - name: Manage openssh firewall with UFW
   ufw: rule=allow name=OpenSSH
   sudo: yes
-  
+
 - name: Manage port 1194 firewall with UFW
   ufw: rule=allow port=1194 proto=udp
   sudo: yes
@@ -277,4 +278,13 @@
     chmod 755 configclient.tar.gz
     chgrp cloud configclient.tar.gz
   sudo: yes
+
+ - name: copy config client
+   args:
+     chdir: /etc/openvpn/
+     executable: /bin/bash
+  shell: |
+   scp -oIdentityFile=/home/cloud/.ssh/cloud.pub /etc/openvpn/configclient.tar.gz cloud@"{{ip_client}}":/etc/openvpn/
+  sudo: yes
+
   notify: start openvpn

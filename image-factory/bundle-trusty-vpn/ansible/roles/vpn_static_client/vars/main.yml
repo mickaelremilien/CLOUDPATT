@@ -1,0 +1,3 @@
+---
+vpn_static_client:
+ip_server:  "{{ lookup('file', '/home/cloud/ip_server') }}"

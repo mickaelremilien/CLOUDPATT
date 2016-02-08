@@ -88,13 +88,10 @@ resources:
       outputs:
         - name: hostname
       group: script
-      user_data_format: RAW
-      user_data:
-        str_replace:
-          template: |
-            #!/bin/bash
-            echo "${cloud_pub}" | su - $cloud -c 'tee -a .ssh/authorized_keys'
-            hostname > ${heat_outputs_path}.hostname
+      config: |
+        #!/bin/bash
+        echo "${cloud_pub}" | su - $cloud -c 'tee -a .ssh/authorized_keys'
+        hostname > ${heat_outputs_path}.hostname
 
   key_gen:
     type: OS::Heat::SoftwareConfig
@@ -103,15 +100,13 @@ resources:
         - name: cloud
       outputs:
         - name: cloud_pub
-      user_data_format: RAW
-      user_data:
-        str_replace:
-          template: |
-            #!/bin/bash
-            su - ${user_name} << EOF > ${heat_outputs_path}.cloud_pub
-            test -f .ssh/cloud.pub || ssh-keygen -q -t rsa -N "" -f .ssh/cloud_pub
-            cat .ssh/cloud_pub.pub
-            EOF
+      group: script
+      config: |
+        #!/bin/bash
+        su - ${user_name} << EOF > ${heat_outputs_path}.cloud_pub
+        test -f .ssh/cloud.pub || ssh-keygen -q -t rsa -N "" -f .ssh/cloud
+        cat .ssh/cloud.pub
+        EOF
 
   do_key_gen:
     type: OS::Heat::SoftwareDeployment
@@ -133,14 +128,10 @@ resources:
       config:
         get_resource: key_add
       server:
-        get_resource: client
+        get_resource: server-1
 
   network:
     type: OS::Neutron::Net
-
-  network2:
-    type: OS::Neutron::Net
-
 
   subnet:
     type: OS::Neutron::Subnet
@@ -154,19 +145,6 @@ resources:
         - { destination: 10.0.1.0/24, nexthop: 10.0.1.1 }
         - { destination: 10.0.1.0/24, nexthop: 10.0.1.100 }
         - { destination: 169.254.0.0/16, nexthop: 10.0.1.1 }
-
-  subnet2:
-    type: OS::Neutron::Subnet
-    properties:
-      network_id: { get_resource: network2 }
-      ip_version: 4
-      cidr: 10.1.1.0/24
-      allocation_pools:
-        - { start: 10.1.1.100, end: 10.1.1.199 }
-      host_routes:
-        - { destination: 10.1.1.0/24, nexthop: 10.1.1.1 }
-        - { destination: 10.1.1.0/24, nexthop: 10.1.1.100 }
-        - { destination: 169.254.0.0/16, nexthop: 10.1.1.1 }
 
   security_group:
     type: OS::Neutron::SecurityGroup
@@ -187,26 +165,10 @@ resources:
     properties:
       floating_network_id: 6ea98324-0f14-49f6-97c0-885d1b8dc517
 
-  floating_ip2:
-    type: OS::Neutron::FloatingIP
-    properties:
-      floating_network_id: 6ea98324-0f14-49f6-97c0-885d1b8dc517
-
-  floating_ip_link:
-    type: OS::Nova::FloatingIPAssociation
-    properties:
-      floating_ip: { get_resource: floating_ip }
-      server_id: { get_resource: server }
-
-  floating_ip_link:
-    type: OS::Nova::FloatingIPAssociation
-    properties:
-      floating_ip: { get_resource: floating_ip2 }
-      server_id: { get_resource: client }
 
 
 
-  serverlanserver:
+  server1:
     type: OS::Nova::Server
     properties:
       key_name: { get_param: keypair_name }
@@ -217,16 +179,6 @@ resources:
       security_groups:
         - { get_resource: security_group }
 
-  serverlanclient:
-    type: OS::Nova::Server
-    properties:
-      key_name: { get_param: keypair_name }
-      image: { get_param: image }
-      flavor: { get_param: flavor_name }
-      networks:
-        - network: {get_resource: network2}
-      security_groups:
-        - { get_resource: security_group }
 
 
 
@@ -246,7 +198,6 @@ resources:
           template: |
             #!/usr/bin/env bash
             sudo mkdir /etc/vpnconf/
-            echo -n "$ip_client$" >> /home/cloud/ip_client
             echo -n "$COUNTRY$" >> /etc/vpnconf/COUNTRY
             echo -n "$PROVINCE$" >> /etc/vpnconf/PROVINCE
             echo -n "$CITY$" >> /etc/vpnconf/CITY
@@ -265,58 +216,26 @@ resources:
             echo "127.0.0.1 ansible_connection=local" >> /etc/ansible/hosts
             cd /home/cloud/
             git clone  https://github.com/mickaelremilien/CLOUDPATT.git
-            sudo ansible-playbook /home/cloud/CLOUDPATT/image-factory/bundle-trusty-vpn/ansible/bootstrap2server.yml
+            sudo ansible-playbook /home/cloud/CLOUDPATT/image-factory/bundle-trusty-vpn/ansible/bootstrap.yml
           params:
             $COUNTRY$: { get_param: COUNTRY }
             $PROVINCE$: { get_param: PROVINCE }
             $CITY$: { get_param: CITY }
             $ORGANISATION$: { get_param: ORGANISATION }
             $EMAIL$:  { get_param: EMAIL }
-            $ip_client$: { get_attr: [floating_ip2, floating_ip_address] }
 
-  client:
-    type: OS::Nova::Server
+
+
+  floating_ip_link:
+    type: OS::Nova::FloatingIPAssociation
     properties:
-      key_name: { get_param: keypair_name }
-      image:  { get_param: image }
-      flavor: { get_param: flavor_name }
-      networks:
-        - network: { get_resource: network2 }
-      security_groups:
-        - { get_resource: security_group }
-      user_data_format: RAW
-      user_data:
-        str_replace:
-          template: |
-            #!/usr/bin/env bash
-            echo -n "$ip_server$" >> /home/cloud/ip_server
-            echo "$(date) - START" >> /var/log/vpn_srv.log
-            export DEBIAN_FRONTEND=noninteractive
-            apt-get update 2>&1 >> /var/log/vpn_client.log
-            echo "$(date) - update done" >> /var/log/vpn_client.log
-            apt-get -o Dpkg::Options::="--force-confold" upgrade -y 2>&1 >> /var/log/vpn_client.log
-            echo "$(date) - upgrade done" >> /var/log/vpn_client.log
-            apt-get -o Dpkg::Options::="--force-confold" install openvpn -y 2>&1 >> /var/log/vpn_client.log
-            echo "$(date) - openvpn done" >> /var/log/vpn_client.log
-            mkdir /etc/ansible
-            echo "[local]" >> /etc/ansible/hosts
-            echo "127.0.0.1 ansible_connection=local" >> /etc/ansible/hosts
-            cd /home/cloud/
-            git clone  https://github.com/mickaelremilien/CLOUDPATT.git
-            sudo ansible-playbook /home/cloud/CLOUDPATT/image-factory/bundle-trusty-vpn/ansible/bootstrap2client.yml
-          params:
-            $ip_server$: { get_attr: [floating_ip, floating_ip_address] }
-
-
+      floating_ip: { get_resource: floating_ip }
+      server_id: { get_resource: server }
 
 outputs:
   floating_ip:
     description: IP address of the deployed compute server
     value: { get_attr: [floating_ip, floating_ip_address] }
-
-  floating_ip2:
-    description: IP address of the deployed compute client
-    value: { get_attr: [floating_ip2, floating_ip_address] }
 
   server_id:
     description: ID of the server
