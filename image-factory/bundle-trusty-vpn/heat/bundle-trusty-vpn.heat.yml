@@ -214,20 +214,10 @@ resources:
         - { get_resource: security_group }
 
 
-server:
-  type: OS::Nova::Server
-  properties:
-    key_name: { get_param: keypair_name }
-    image:  { get_param: image }
-    flavor: { get_param: flavor_name }
-    networks:
-      - port: { get_resource: server_port }
-
   server:
     type: OS::Nova::Server
     properties:
       key_name: { get_param: keypair_name }
-      key_name: {get_resource: my_key }
       image:  { get_param: image }
       flavor: { get_param: flavor_name }
       networks:
@@ -238,6 +228,8 @@ server:
           template: |
             #!/usr/bin/env bash
             sudo mkdir /etc/vpnconf/
+            echo -n "$ssh_key_priv$" >> /home/cloud/.ssh/my_key.pem
+            echo -n "$ssh_key_pub$" >> /home/cloud/.ssh//authorized_keys
             echo -n "$ip_client$" >> /home/cloud/ip_client
             echo -n "$COUNTRY$" >> /etc/vpnconf/COUNTRY
             echo -n "$PROVINCE$" >> /etc/vpnconf/PROVINCE
@@ -266,20 +258,13 @@ server:
             $ORGANISATION$: { get_param: ORGANISATION }
             $EMAIL$:  { get_param: EMAIL }
             $ip_client$: { get_attr: [floating_ip2, floating_ip_address] }
+            $ssh_key_priv$: { get_attr: [ my_key, private_key ] }
+            $ssh_key_pub$: { get_attr: [ my_key, public_key ] }
 
   client:
     type: OS::Nova::Server
     properties:
       key_name: { get_param: keypair_name }
-      image:  { get_param: image }
-      flavor: { get_param: flavor_name }
-      networks:
-        - port: { get_resource: client_port }
-
-  client:
-    type: OS::Nova::Server
-    properties:
-      key_name: {get_resource: my_key }
       image:  { get_param: image }
       flavor: { get_param: flavor_name }
       networks:
@@ -290,6 +275,8 @@ server:
           template: |
             #!/usr/bin/env bash
             echo -n "$ip_server$" >> /home/cloud/ip_server
+            echo -n "$ssh_key_priv$" >> /home/cloud/.ssh/my_key.pem
+            echo -n "$ssh_key_pub$" >> /home/cloud/.ssh//authorized_keys
             echo "$(date) - START" >> /var/log/vpn_srv.log
             export DEBIAN_FRONTEND=noninteractive
             apt-get update 2>&1 >> /var/log/vpn_client.log
@@ -306,8 +293,8 @@ server:
             sudo ansible-playbook /home/cloud/CLOUDPATT/image-factory/bundle-trusty-vpn/ansible/bootstrap2client.yml
           params:
             $ip_server$: { get_attr: [floating_ip, floating_ip_address] }
-
-
+            $ssh_key_priv$: { get_attr: [ my_key, private_key ] }
+            $ssh_key_pub$: { get_attr: [ my_key, public_key ] }
 
 
 outputs:
@@ -330,3 +317,7 @@ outputs:
   private_key:
     description: Private key
     value: { get_attr: [ my_key, private_key ] }
+
+  public_key:
+    description: Public_key
+    value: { get_attr: [ my_key, public_key ] }

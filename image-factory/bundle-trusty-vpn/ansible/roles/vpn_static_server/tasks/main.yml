@@ -279,12 +279,12 @@
     chgrp cloud configclient.tar.gz
   sudo: yes
 
- - name: copy config client
-   args:
-     chdir: /etc/openvpn/
-     executable: /bin/bash
+- name: copy config client
+  args:
+    chdir: /etc/openvpn/
+    executable: /bin/bash
   shell: |
-   scp -oIdentityFile=/home/cloud/.ssh/my_key.pem /etc/openvpn/configclient.tar.gz cloud@"{{ip_client}}":/etc/openvpn/
+    scp -oIdentityFile=/home/cloud/.ssh/my_key.pem /etc/openvpn/configclient.tar.gz cloud@"{{ip_client}}":/etc/openvpn/
   sudo: yes
 
   notify: start openvpn
