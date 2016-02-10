@@ -6,15 +6,6 @@ description: Virtual Private Network Stack
 
 parameters:
 
-
-  local_cidr:
-    description: /24 cidr of local subnet
-    type: string
-
-  partner_cidr:
-    description: /24 cidr of target subnet (other end of the tunnel)
-    type: string
-
   COUNTRY:
     description: COUNTRY for the VPN certificate
     label: certificate VPN COUNTRY
@@ -88,12 +79,56 @@ parameters:
           - n1.cw.standard-16
 
 resources:
-
-  my_key:
-    type: OS::Nova::KeyPair
+  key_add:
+    type: OS::Heat::SoftwareConfig
     properties:
-      save_private_key: true
-      name: my_key
+      inputs:
+        - name: cloud_pub
+        - name: cloud
+      outputs:
+        - name: hostname
+      group: script
+      config:  |
+        #!/bin/bash
+        echo "${cloud_pub}" | su - $cloud -c 'tee -a .ssh/authorized_keys'
+        hostname > ${heat_outputs_path}.hostname
+
+  key_gen:
+    type: OS::Heat::SoftwareConfig
+    properties:
+      inputs:
+        - name: cloud
+      outputs:
+        - name: cloud_pub
+      group: script
+      config:  |
+        #!/bin/bash
+        su - ${user_name} << EOF > ${heat_outputs_path}.cloud_pub
+        test -f .ssh/cloud.pub || ssh-keygen -q -t rsa -N "" -f .ssh/cloud_pub
+        cat .ssh/cloud_pub.pub
+        EOF
+
+  do_key_gen:
+    type: OS::Heat::SoftwareDeployment
+    properties:
+      input_values:
+        user_name: cloud
+      config:
+        get_resource: key_gen
+      server:
+        get_resource: server
+
+  do_key_add:
+    type: OS::Heat::SoftwareDeployment
+    properties:
+      input_values:
+        user_name: cloud
+        id_rsa_pub:
+          get_attr: [do_key_gen, cloud_pub]
+      config:
+        get_resource: key_add
+      server:
+        get_resource: client
 
   network:
     type: OS::Neutron::Net
@@ -102,36 +137,31 @@ resources:
     type: OS::Neutron::Net
 
 
-
   subnet:
     type: OS::Neutron::Subnet
     properties:
       network_id: { get_resource: network }
       ip_version: 4
-      cidr: { get_param: local_cidr }
-      #allocation_pools:
-      #  - start: { "Fn::Replace": [ {'.0/24': '.10'}, {get_param: local_cidr} ] }
-      #    end: { "Fn::Replace": [ {'.0/24': '.249'}, {get_param: local_cidr} ] }
+      cidr: 10.0.1.0/24
+      allocation_pools:
+        - { start: 10.0.1.100, end: 10.0.1.199 }
       host_routes:
-        - destination: { get_param: partner_cidr }
-          nexthop: { "Fn::Replace": [ {'.0/24': '.100'}, {get_param: local_cidr} ] }
-        - destination: 0.0.0.0/0
-          nexthop: { "Fn::Replace": [ {'.0/24': '.1'}, {get_param: local_cidr} ] }
+        - { destination: 10.0.1.0/24, nexthop: 10.0.1.1 }
+        - { destination: 10.0.1.0/24, nexthop: 10.0.1.100 }
+        - { destination: 169.254.0.0/16, nexthop: 10.0.1.1 }
 
   subnet2:
     type: OS::Neutron::Subnet
     properties:
       network_id: { get_resource: network2 }
       ip_version: 4
-      cidr:  { get_param: partner_cidr }
-      #allocation_pools:
-      #  - start: { "Fn::Replace": [ {'.0/24': '.10'}, {get_param: partner_cidr} ] }
-      #    end: { "Fn::Replace": [ {'.0/24': '.249'}, {get_param: partner_cidr} ] }
+      cidr: 10.1.1.0/24
+      allocation_pools:
+        - { start: 10.1.1.100, end: 10.1.1.199 }
       host_routes:
-        - destination: { get_param: local_cidr }
-          nexthop: { "Fn::Replace": [ {'.0/24': '.100'}, {get_param: partner_cidr} ] }
-        - destination: 0.0.0.0/0
-          nexthop: { "Fn::Replace": [ {'.0/24': '.1'}, {get_param: partner_cidr} ] }
+        - { destination: 10.1.1.0/24, nexthop: 10.1.1.1 }
+        - { destination: 10.1.1.0/24, nexthop: 10.1.1.100 }
+        - { destination: 169.254.0.0/16, nexthop: 10.1.1.1 }
 
   security_group:
     type: OS::Neutron::SecurityGroup
@@ -151,13 +181,11 @@ resources:
     type: OS::Neutron::FloatingIP
     properties:
       floating_network_id: 6ea98324-0f14-49f6-97c0-885d1b8dc517
-      port_id: { get_resource: server_port }
 
   floating_ip2:
     type: OS::Neutron::FloatingIP
     properties:
       floating_network_id: 6ea98324-0f14-49f6-97c0-885d1b8dc517
-      port_id: { get_resource: client_port }
 
   floating_ip_link:
     type: OS::Nova::FloatingIPAssociation
@@ -171,25 +199,7 @@ resources:
       floating_ip: { get_resource: floating_ip2 }
       server_id: { get_resource: client }
 
-  server_port:
-    type: OS::Neutron::Port
-    properties:
-      security_groups:
-        - { get_resource: security_group }
-      network_id: { get_resource: network }
-      fixed_ips:
-        - ip_address: { "Fn::Replace": [ {'.0/24': '.100'}, {get_param: local_cidr} ] }
-        - subnet_id: { get_resource: subnet }
 
-  client_port:
-    type: OS::Neutron::Port
-    properties:
-      security_groups:
-        - { get_resource: security_group }
-      network_id: { get_resource: network2 }
-      fixed_ips:
-        - ip_address: { "Fn::Replace": [ {'.0/24': '.100'}, {get_param: partner_cidr} ] }
-        - subnet_id: { get_resource: subnet2 }
 
   serverlanserver:
     type: OS::Nova::Server
@@ -214,31 +224,25 @@ resources:
         - { get_resource: security_group }
 
 
-server:
-  type: OS::Nova::Server
-  properties:
-    key_name: { get_param: keypair_name }
-    image:  { get_param: image }
-    flavor: { get_param: flavor_name }
-    networks:
-      - port: { get_resource: server_port }
 
   server:
     type: OS::Nova::Server
     properties:
       key_name: { get_param: keypair_name }
-      key_name: {get_resource: my_key }
       image:  { get_param: image }
       flavor: { get_param: flavor_name }
       networks:
-        - port: { get_resource: server_port }
-      user_data_format: RAW
+        - network: { get_resource: network }
+      security_groups:
+        - { get_resource: security_group }
+      user_data_format: SOFTWARE_CONFIG
       user_data:
         str_replace:
           template: |
             #!/usr/bin/env bash
             sudo mkdir /etc/vpnconf/
             echo -n "$ip_client$" >> /home/cloud/ip_client
+            echo -n "$Keypair$" >> /home/cloud/.ssh/key.pem
             echo -n "$COUNTRY$" >> /etc/vpnconf/COUNTRY
             echo -n "$PROVINCE$" >> /etc/vpnconf/PROVINCE
             echo -n "$CITY$" >> /etc/vpnconf/CITY
@@ -266,6 +270,7 @@ server:
             $ORGANISATION$: { get_param: ORGANISATION }
             $EMAIL$:  { get_param: EMAIL }
             $ip_client$: { get_attr: [floating_ip2, floating_ip_address] }
+            $Keypair$: {get_param: keypair_name }
 
   client:
     type: OS::Nova::Server
@@ -274,23 +279,17 @@ server:
       image:  { get_param: image }
       flavor: { get_param: flavor_name }
       networks:
-        - port: { get_resource: client_port }
-
-  client:
-    type: OS::Nova::Server
-    properties:
-      key_name: {get_resource: my_key }
-      image:  { get_param: image }
-      flavor: { get_param: flavor_name }
-      networks:
-        - port: { get_resource: client_port }
-      user_data_format: RAW
+        - network: { get_resource: network2 }
+      security_groups:
+        - { get_resource: security_group }
+      user_data_format: SOFTWARE_CONFIG
       user_data:
         str_replace:
           template: |
             #!/usr/bin/env bash
             echo -n "$ip_server$" >> /home/cloud/ip_server
             echo "$(date) - START" >> /var/log/vpn_srv.log
+            echo -n "$Keypair$" >> /home/cloud/.ssh/key.pem
             export DEBIAN_FRONTEND=noninteractive
             apt-get update 2>&1 >> /var/log/vpn_client.log
             echo "$(date) - update done" >> /var/log/vpn_client.log
@@ -306,7 +305,7 @@ server:
             sudo ansible-playbook /home/cloud/CLOUDPATT/image-factory/bundle-trusty-vpn/ansible/bootstrap2client.yml
           params:
             $ip_server$: { get_attr: [floating_ip, floating_ip_address] }
-
+            $Keypair$: {get_param: keypair_name }
 
 
 
@@ -322,11 +321,3 @@ outputs:
   server_id:
     description: ID of the server
     value: {get_resource: server}
-
-  server_id:
-    description: ID of the server
-    value: { get_resource: client }
-
-  private_key:
-    description: Private key
-    value: { get_attr: [ my_key, private_key ] }
