@@ -140,8 +140,14 @@
     mode=0644
 
 #ccd
-- name: creation repertoire ccd
-  win_file: path=\etc\openvpn\ccd state=directory
+- name: create keys folder ccd
+  file:
+    path=/etc/openvpn/ccd
+    state=directory
+    owner=cloud
+    group=cloud
+    recurse=yes
+  sudo: yes
 
 #client1
 - name: configuration ccd
