@@ -97,7 +97,7 @@
 #openvpn/client.conf
 - name: client.conf configuration
   copy:
-    src=roles/vpn_static/files/client.conf
+    src=roles/vpn_static_server/files/client.conf
     dest=/etc/openvpn/client.conf
     owner=cloud
     group=cloud
@@ -106,7 +106,7 @@
 #openvpn/server.conf
 - name: server.conf configuration
   copy:
-    src=roles/vpn_static/files/server.conf
+    src=roles/vpn_static_server/files/server.conf
     dest=/etc/openvpn/server.conf
     owner=cloud
     group=cloud
@@ -115,7 +115,7 @@
 #sysctl.conf
 - name: sysctl.conf configuration
   copy:
-    src=roles/vpn_static/files/sysctl.conf
+    src=roles/vpn_static_server/files/sysctl.conf
     dest=/etc/sysctl.conf
     owner=root
     group=root
@@ -124,7 +124,7 @@
 #ufw/before.rules
 - name: before.rules configuration
   copy:
-    src=roles/vpn_static/files/before.rules
+    src=roles/vpn_static_server/files/before.rules
     dest=/etc/ufw/before.rules
     owner=root
     group=root
@@ -133,7 +133,7 @@
 #easy-rsa/vars
 - name: var configuration
   copy:
-    src=roles/vpn_static/files/vars
+    src=roles/vpn_static_server/files/vars
     dest=/etc/openvpn/easy-rsa/vars
     owner=cloud
     group=cloud
@@ -146,7 +146,7 @@
 #client1
 - name: configuration ccd
   copy:
-    src=roles/vpn_static/files/client1
+    src=roles/vpn_static_server/files/client1
     dest=/etc/openvpn/ccd/client1
     owner=root
     group=root
@@ -155,7 +155,7 @@
 #ufw
 - name: before.rules configuration
   copy:
-    src=roles/vpn_static/files/ufw
+    src=roles/vpn_static_server/files/ufw
     dest=/etc/default/ufw
     owner=root
     group=root
