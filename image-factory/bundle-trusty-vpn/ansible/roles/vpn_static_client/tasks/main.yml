@@ -32,7 +32,12 @@
     - easy-rsa
     - gadmin-openvpn-server
 
-    
+- name: setting openvpn autostart
+  replace:
+    dest=/etc/default/openvpn
+    regexp='#AUTOSTART="all"'
+    replace='AUTOSTART="all"'
+
 - name: change owner and rights on openvpn directory
     file:
       path=/etc/openvpn
@@ -40,10 +45,14 @@
       owner=cloud
       group=cloud
 
+- name: wait for configclient.tar.gz
+  wait_for:
+    path=/etc/openvpn/configclient.tar.gz
 
-- name: decompress configclient.tar.gz
-  state: present
-  unarchive: src=/etc/openvpn/configclient.tar.gz dest=/etc/openvpn/
+- name: unarchive configclient.tar.gz
+  unarchive:
+    src=/etc/openvpn/configclient.tar.gz
+    dest=/etc/openvpn/
 
 - name: modification configclient
   replace:
@@ -51,6 +60,18 @@
     regexp='X.X.X.X'
     replace='"{{ip_server}}"'
 
+- name: extract config client
+  args:
+    chdir: /etc/openvpn/configclient
+    executable: /bin/bash
+  shell: |
+    mv client1.crt ..
+    mv client1.key ..
+    mv ta.key ..
+    mv cp ca.crt ..
+    mv client.conf ..
+    rm configclient
+    rm configclient.tar.gz
 
 - name: fr locale generated
   locale_gen: name=fr_FR.UTF-8 state=present

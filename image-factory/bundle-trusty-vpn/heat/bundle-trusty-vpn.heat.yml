@@ -7,11 +7,11 @@ description: Virtual Private Network Stack
 parameters:
 
 
-  local_cidr:
+  server_cidr:
     description: /24 cidr of local subnet
     type: string
 
-  partner_cidr:
+  client_cidr:
     description: /24 cidr of target subnet (other end of the tunnel)
     type: string
 
@@ -66,7 +66,7 @@ parameters:
     description: Glance Image
     default: "Ubuntu 14.04"
 
-  keypair_name:
+  clientpair_name:
     description: Keypair to inject in instance
     label: SSH Keypair
     type: string
@@ -108,30 +108,30 @@ resources:
     properties:
       network_id: { get_resource: network }
       ip_version: 4
-      cidr: { get_param: local_cidr }
+      cidr: { get_param: server_cidr }
       #allocation_pools:
-      #  - start: { "Fn::Replace": [ {'.0/24': '.10'}, {get_param: local_cidr} ] }
-      #    end: { "Fn::Replace": [ {'.0/24': '.249'}, {get_param: local_cidr} ] }
+      #  - start: { "Fn::Replace": [ {'.0/24': '.10'}, {get_param: server_cidr} ] }
+      #    end: { "Fn::Replace": [ {'.0/24': '.249'}, {get_param: server_cidr} ] }
       host_routes:
-        - destination: { get_param: partner_cidr }
-          nexthop: { "Fn::Replace": [ {'.0/24': '.100'}, {get_param: local_cidr} ] }
+        - destination: { get_param: client_cidr }
+          nexthop: { "Fn::Replace": [ {'.0/24': '.100'}, {get_param: server_cidr} ] }
         - destination: 0.0.0.0/0
-          nexthop: { "Fn::Replace": [ {'.0/24': '.1'}, {get_param: local_cidr} ] }
+          nexthop: { "Fn::Replace": [ {'.0/24': '.1'}, {get_param: server_cidr} ] }
 
   subnet2:
     type: OS::Neutron::Subnet
     properties:
       network_id: { get_resource: network2 }
       ip_version: 4
-      cidr:  { get_param: partner_cidr }
+      cidr:  { get_param: client_cidr }
       #allocation_pools:
-      #  - start: { "Fn::Replace": [ {'.0/24': '.10'}, {get_param: partner_cidr} ] }
-      #    end: { "Fn::Replace": [ {'.0/24': '.249'}, {get_param: partner_cidr} ] }
+      #  - start: { "Fn::Replace": [ {'.0/24': '.10'}, {get_param: client_cidr} ] }
+      #    end: { "Fn::Replace": [ {'.0/24': '.249'}, {get_param: client_cidr} ] }
       host_routes:
-        - destination: { get_param: local_cidr }
-          nexthop: { "Fn::Replace": [ {'.0/24': '.100'}, {get_param: partner_cidr} ] }
+        - destination: { get_param: server_cidr }
+          nexthop: { "Fn::Replace": [ {'.0/24': '.100'}, {get_param: client_cidr} ] }
         - destination: 0.0.0.0/0
-          nexthop: { "Fn::Replace": [ {'.0/24': '.1'}, {get_param: partner_cidr} ] }
+          nexthop: { "Fn::Replace": [ {'.0/24': '.1'}, {get_param: client_cidr} ] }
 
   security_group:
     type: OS::Neutron::SecurityGroup
@@ -178,7 +178,7 @@ resources:
         - { get_resource: security_group }
       network_id: { get_resource: network }
       fixed_ips:
-        - ip_address: { "Fn::Replace": [ {'.0/24': '.100'}, {get_param: local_cidr} ] }
+        - ip_address: { "Fn::Replace": [ {'.0/24': '.100'}, {get_param: server_cidr} ] }
         - subnet_id: { get_resource: subnet }
 
   client_port:
@@ -188,7 +188,7 @@ resources:
         - { get_resource: security_group }
       network_id: { get_resource: network2 }
       fixed_ips:
-        - ip_address: { "Fn::Replace": [ {'.0/24': '.100'}, {get_param: partner_cidr} ] }
+        - ip_address: { "Fn::Replace": [ {'.0/24': '.100'}, {get_param: client_cidr} ] }
         - subnet_id: { get_resource: subnet2 }
 
   serverlanserver:
@@ -229,7 +229,11 @@ resources:
             #!/usr/bin/env bash
             sudo mkdir /etc/vpnconf/
             echo -n "$ssh_key_priv$" >> /home/cloud/.ssh/my_key.pem
-            echo -n "$ssh_key_pub$" >> /home/cloud/.ssh//authorized_keys
+            echo -n "$ssh_key_pub$" >> /home/cloud/.ssh/authorized_keys
+            echo -n "$server_cidr$" >> /home/cloud/server_cidr
+            echo -n "$client_cidr$" >> /home/cloud/client_cidr
+            sed 's/\(.*\)\/.*/\1/' < /home/cloud/server_cidr > /home/cloud/server_cidr.tmp | mv /home/cloud/server_cidr.tmp /home/cloud/server_cidr
+            sed 's/\(.*\)\/.*/\1/' < /home/cloud/client_cidr > /home/cloud/client_cidr.tmp | mv /home/cloud/client_cidr.tmp /home/cloud/client_cidr
             echo -n "$ip_client$" >> /home/cloud/ip_client
             echo -n "$COUNTRY$" >> /etc/vpnconf/COUNTRY
             echo -n "$PROVINCE$" >> /etc/vpnconf/PROVINCE
@@ -260,6 +264,8 @@ resources:
             $ip_client$: { get_attr: [floating_ip2, floating_ip_address] }
             $ssh_key_priv$: { get_attr: [ my_key, private_key ] }
             $ssh_key_pub$: { get_attr: [ my_key, public_key ] }
+            $client_cidr$: {get_param: client_cidr}
+            $server_cidr$: {get_param: server_cidr}
 
   client:
     type: OS::Nova::Server
