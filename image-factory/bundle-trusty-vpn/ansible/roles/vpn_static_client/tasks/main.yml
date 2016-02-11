@@ -61,7 +61,7 @@
   replace:
     dest=/etc/openvpn/configclient/client.conf
     regexp='X.X.X.X'
-    replace='"{{ip_server}}"'
+    replace='{{ip_server}}'
 
 - name: extract config client
   args:
@@ -73,6 +73,4 @@
     mv ta.key ..
     mv cp ca.crt ..
     mv client.conf ..
-    sudo rm -r configclient
-    sudo rm configclient.tar.gz
   notify: start openvpn
