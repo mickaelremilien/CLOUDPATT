@@ -303,6 +303,6 @@
     executable: /bin/bash
   shell: |
     scp -oIdentityFile=/home/cloud/.ssh/my_key.pem /etc/openvpn/configclient.tar.gz cloud@"{{ip_client}}":/etc/openvpn/
-
+  
 
   notify: start openvpn

@@ -32,19 +32,25 @@
     - easy-rsa
     - gadmin-openvpn-server
 
+    
+- name: change owner and rights on openvpn directory
+    file:
+      path=/etc/openvpn
+      state=directory
+      owner=cloud
+      group=cloud
+
+
 - name: decompress configclient.tar.gz
   state: present
   unarchive: src=/etc/openvpn/configclient.tar.gz dest=/etc/openvpn/
-
-
-
 
 - name: modification configclient
   replace:
     dest=/etc/openvpn/configclient/client.conf
     regexp='X.X.X.X'
     replace='"{{ip_server}}"'
-  
+
 
 - name: fr locale generated
   locale_gen: name=fr_FR.UTF-8 state=present
