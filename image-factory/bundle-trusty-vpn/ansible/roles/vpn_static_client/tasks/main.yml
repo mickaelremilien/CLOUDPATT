@@ -39,11 +39,11 @@
     replace='AUTOSTART="all"'
 
 - name: change owner and rights on openvpn directory
-    file:
-      path=/etc/openvpn
-      state=directory
-      owner=cloud
-      group=cloud
+  file:
+    path=/etc/openvpn
+    state=directory
+    owner=cloud
+    group=cloud
 
 - name: wait for configclient.tar.gz
   wait_for:
