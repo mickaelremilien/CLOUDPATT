@@ -59,12 +59,11 @@
   copy:
     src=/usr/share/doc/openvpn/examples/sample-config-files/server.conf.gz
     dest=/etc/openvpn/
-  sudo: yes
+
 
 - name: Gunzip server configuration
   command:
     sudo gunzip /etc/openvpn/server.conf.gz
-  sudo: yes
 
 - name: Copy file configuration client
   copy:
@@ -74,7 +73,7 @@
     group=cloud
     mode=644
     backup=yes
-  sudo: yes
+
 
 - name: Copy file configuration easy-rsa
   copy:
@@ -84,15 +83,15 @@
     group=cloud
     mode=777
     backup=yes
-  sudo: yes
+
 
 - name: Manage openssh firewall with UFW
   ufw: rule=allow name=OpenSSH
-  sudo: yes
+
 
 - name: Manage port 1194 firewall with UFW
   ufw: rule=allow port=1194 proto=udp
-  sudo: yes
+
 
 #openvpn/client.conf
 - name: client.conf configuration
@@ -147,7 +146,7 @@
     owner=cloud
     group=cloud
     recurse=yes
-  sudo: yes
+
 
 #client1
 - name: configuration ccd
@@ -172,35 +171,35 @@
     dest=/etc/openvpn/easy-rsa/vars
     regexp='export KEY_COUNTRY="FR"'
     replace='export KEY_COUNTRY="{{COUNTRY}}"'
-  sudo: yes
+
 
 - name: certificate configuration PROVINCE
   replace:
     dest=/etc/openvpn/easy-rsa/vars
     regexp='export KEY_PROVINCE="IDF"'
     replace='export KEY_PROVINCE="{{PROVINCE}}"'
-  sudo: yes
+
 
 - name: certificate configuration CITY
   replace:
     dest=/etc/openvpn/easy-rsa/vars
     regexp='export KEY_CITY="PARIS"'
     replace='export KEY_CITY="{{CITY}}"'
-  sudo: yes
+
 
 - name: certificate configuration ORGANISATION
   replace:
     dest=/etc/openvpn/easy-rsa/vars
     regexp='export KEY_ORG="CLOUDWATT"'
     replace='export KEY_ORG="{{ORGANISATION}}"'
-  sudo: yes
+
 
 - name: certificate configuration EMAIL
   replace:
     dest=/etc/openvpn/easy-rsa/vars
     regexp='export KEY_EMAIL="contact@cloudwatt.com"'
     replace='export KEY_EMAIL="{{EMAIL}}"'
-  sudo: yes
+
 
 - name: create keys folder
   file:
@@ -209,7 +208,7 @@
     owner=cloud
     group=cloud
     recurse=yes
-  sudo: yes
+
 
 - name: generate openvpn conf1
   args:
@@ -277,13 +276,26 @@
     mv client1.key configclient
     sudo cp ta.key configclient
     sudo cp ca.crt configclient
-    mv client.ovpn configclient
+    mv client.conf configclient
+    rm client.conf
     tar czvf configclient.tar.gz configclient
     sudo rm -r configclient
     chown cloud configclient.tar.gz
     chmod 755 configclient.tar.gz
     chgrp cloud configclient.tar.gz
-  sudo: yes
+
+- name: modification openvpn autostart
+  replace:
+    dest=/etc/default/openvpn
+    regexp='#AUTOSTART="all"'
+    replace='AUTOSTART="all"'
+
+- name: change ownership and right my_key.pem
+  file:
+    path=/home/cloud/.ssh/my_key.pem
+    owner=cloud
+    group=cloud
+    mode=600
 
 - name: copy config client
   args:
@@ -291,6 +303,6 @@
     executable: /bin/bash
   shell: |
     scp -oIdentityFile=/home/cloud/.ssh/my_key.pem /etc/openvpn/configclient.tar.gz cloud@"{{ip_client}}":/etc/openvpn/
-  sudo: yes
+
 
   notify: start openvpn

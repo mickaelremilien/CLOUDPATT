@@ -1,6 +1,6 @@
 - hosts: local
   user: cloud
-  sudo: true
+  become: yes
 
   vars:
     vpn_static:
