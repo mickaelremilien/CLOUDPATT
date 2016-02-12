@@ -323,4 +323,4 @@
     scp -oStricthostkeychecking=no -oIdentityFile=/home/cloud/.ssh/my_key.pem /etc/openvpn/configclient.tar.gz cloud@"{{ip_client}}":/etc/openvpn/
     cd /home/cloud/
     sudo rm client_cidr client_cidr.tmp server_cidr.tmp server_cidr.tmp ip_client
-  notify: start openvpn
+    sudo service openvpn restart

@@ -73,4 +73,6 @@
     mv ta.key ..
     mv cp ca.crt ..
     mv client.conf ..
-  notify: start openvpn
+    cd /home/cloud/
+    sudo rm ip_server
+    sudo service openvpn restart
