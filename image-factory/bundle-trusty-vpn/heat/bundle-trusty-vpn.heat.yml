@@ -165,11 +165,11 @@ resources:
       floating_ip: { get_resource: floating_ip }
       server_id: { get_resource: server }
 
-  floating_ip_link2:
-    type: OS::Nova::FloatingIPAssociation
-    properties:
-      floating_ip: { get_resource: floating_ip2 }
-      server_id: { get_resource: client }
+  #floating_ip_link2:
+  #  type: OS::Nova::FloatingIPAssociation
+  #  properties:
+  #    floating_ip: { get_resource: floating_ip2 }
+  #    server_id: { get_resource: client }
 
   server_port:
     type: OS::Neutron::Port

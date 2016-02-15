@@ -294,19 +294,19 @@
   replace:
     dest=/etc/openvpn/server.conf
     regexp='route X.X.X.X 255.255.255.0'
-    replace='route {{server_cidr}} 255.255.255.0'
+    replace='route {{client_cidr}} 255.255.255.0'
 
 - name: setting server.conf 2
   replace:
     dest=/etc/openvpn/server.conf
-    regexp='push " X.X.X.X 255.255.255.0 "'
-    replace='push " {{client_cidr}} 255.255.255.0 "'
+    regexp='push "X.X.X.X 255.255.255.0"'
+    replace='push "{{server_cidr}} 255.255.255.0"'
 
 - name: setting client1
   replace:
     dest=/etc/openvpn/ccd/client1
-    regexp='push "X.X.X.X 255.255.255.0"'
-    replace='push "{{server_cidr}} 255.255.255.0"'
+    regexp='route X.X.X.X 255.255.255.0'
+    replace='route {{server_cidr}} 255.255.255.0"'
 
 - name: change ownership and right my_key.pem
   file:
