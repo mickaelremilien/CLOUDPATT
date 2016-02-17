@@ -159,11 +159,11 @@ resources:
       floating_network_id: 6ea98324-0f14-49f6-97c0-885d1b8dc517
       port_id: { get_resource: client_port }
 
-  floating_ip_link:
-    type: OS::Nova::FloatingIPAssociation
-    properties:
-      floating_ip: { get_resource: floating_ip }
-      server_id: { get_resource: server }
+  #floating_ip_link:
+  #  type: OS::Nova::FloatingIPAssociation
+  #  properties:
+  #    floating_ip: { get_resource: floating_ip }
+  #    server_id: { get_resource: server }
 
   #floating_ip_link2:
   #  type: OS::Nova::FloatingIPAssociation
@@ -244,6 +244,7 @@ resources:
             export DEBIAN_FRONTEND=noninteractive
             apt-get update 2>&1 >> /var/log/vpn_srv.log
             echo "$(date) - update done" >> /var/log/vpn_srv.log
+            sudo ifconfig eth0 10.10.1.100 netmask 255.255.255.0 up
             apt-get -o Dpkg::Options::="--force-confold" upgrade -y 2>&1 >> /var/log/vpn_srv.log
             echo "$(date) - upgrade done" >> /var/log/vpn_srv.log
             apt-get -o Dpkg::Options::="--force-confold" install openvpn -y 2>&1 >> /var/log/vpn_srv.log
@@ -280,6 +281,7 @@ resources:
         str_replace:
           template: |
             #!/usr/bin/env bash
+            sudo ifconfig eth0 10.20.1.100 netmask 255.255.255.0 up
             echo -n "$ip_server$" >> /home/cloud/ip_server
             echo -n "$ssh_key_priv$" >> /home/cloud/.ssh/my_key.pem
             echo -n "$ssh_key_pub$" >> /home/cloud/.ssh//authorized_keys
@@ -304,13 +306,22 @@ resources:
 
 
 outputs:
-  floating_ip:
-    description: IP address of the deployed compute server
-    value: { get_attr: [floating_ip, floating_ip_address] }
 
-  floating_ip2:
-    description: IP address of the deployed compute client
-    value: { get_attr: [floating_ip2, floating_ip_address] }
+#  server_private_ip:
+#    description: IP address of server on private network
+#    value: { get_attr: [ server, first_address ] }
+
+#  client_private_ip:
+#    description: IP address of server on private network
+#    value: { get_attr: [ client, first_address ] }
+
+  #floating_ip:
+  #  description: IP address of the deployed compute server
+  #  value: { get_attr: [floating_ip, floating_ip_address] }
+
+  #floating_ip2:
+  #  description: IP address of the deployed compute client
+  #  value: { get_attr: [floating_ip2, floating_ip_address] }
 
   server_id:
     description: ID of the server

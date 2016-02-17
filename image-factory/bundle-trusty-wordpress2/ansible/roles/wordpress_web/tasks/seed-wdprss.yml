@@ -1,13 +1,4 @@
-- hosts: local
-  user: cloud
-  sudo: true
-
-  vars:
-    wp_db_name: wordpress
-    wp_db_pass: "{{ lookup('file', '/home/cloud/mysqlpwd') }}"
-    wp_mysql_lb: "{{ lookup('file', '/var/log/sql_vip') }}"
-
-  tasks:
+---
     - name: packages installed
       apt:
         pkg={{ item }}
@@ -18,7 +9,7 @@
 
     - name: apache site configuration
       copy:
-        src=files/wordpress.apache2.conf
+        src=role/wordpress_web/files/wordpress.apache2.conf
         dest=/etc/apache2/sites-available/default-wp.conf
         owner=root
         group=root
@@ -27,7 +18,7 @@
 
     - name: wordpress site configuration
       template:
-        src=templates/wordpress.etc.conf
+        src=role/wordpress_web/files/wordpress.etc.conf
         dest=/etc/wordpress/config-default.php
         owner=root
         group=root

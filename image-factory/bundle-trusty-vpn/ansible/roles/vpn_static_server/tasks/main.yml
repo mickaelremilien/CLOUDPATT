@@ -306,7 +306,7 @@
   replace:
     dest=/etc/openvpn/ccd/client1
     regexp='route X.X.X.X 255.255.255.0'
-    replace='route {{server_cidr}} 255.255.255.0"'
+    replace='route {{client_cidr}} 255.255.255.0"'
 
 - name: change ownership and right my_key.pem
   file:
