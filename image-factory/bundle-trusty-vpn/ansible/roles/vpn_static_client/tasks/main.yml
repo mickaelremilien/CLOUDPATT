@@ -51,6 +51,7 @@
 - name: wait for configclient.tar.gz
   wait_for:
     path=/etc/openvpn/configclient.tar.gz
+    timeout=no
 
 - name: unarchive configclient.tar.gz
   unarchive:
