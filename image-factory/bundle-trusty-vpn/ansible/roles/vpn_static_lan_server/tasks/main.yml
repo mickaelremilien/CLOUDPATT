@@ -1,0 +1,8 @@
+---
+- name: extract config client
+  args:
+    chdir: /etc/openvpn/configclient
+    executable: /bin/bash
+  shell: |
+    sudo route del -net {{client_cidr}} netmask 255.255.255.0 gw {{server_cidr_gw_df}}
+    sudo route add -net {{client_cidr}} netmask 255.255.255.0 gw {{server_cidr_gw}}

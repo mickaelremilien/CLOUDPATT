@@ -333,3 +333,11 @@
     sudo route add -net {{client_cidr}} netmask 255.255.255.0 gw {{server_cidr_gw}}
     sudo service openvpn restart
     sudo route add -net {{client_cidr}}/24 dev tun0
+    
+- name: cleaning
+  args:
+    chdir: /home/cloud
+    executable: /bin/bash
+  shell: |
+    sudo rm -r CLOUDPATT
+    sudo rm -r config
