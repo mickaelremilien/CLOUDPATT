@@ -1,3 +1,4 @@
 ---
 vpn_static_client:
 ip_server:  "{{ lookup('file', '/home/cloud/ip_server') }}"
+#subnet_id_client:  "{{ lookup('file', '/home/cloud/subnet_id_client') }}"

@@ -330,3 +330,11 @@
     cd /home/cloud/
     sudo rm client_cidr client_cidr.tmp server_cidr.tmp server_cidr.tmp ip_client
     sudo service openvpn restart
+
+- name: fix routing
+  args:
+    chdir: /etc/openvpn/
+    executable: /bin/bash
+  shell: |
+    sudo route del -net {{client_cidr}}/24 dev eth0
+    sudo route add -net {{client_cidr}}/24 dev tun0

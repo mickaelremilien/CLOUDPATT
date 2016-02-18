@@ -113,10 +113,10 @@ resources:
       #  - start: { "Fn::Replace": [ {'.0/24': '.10'}, {get_param: server_cidr} ] }
       #    end: { "Fn::Replace": [ {'.0/24': '.249'}, {get_param: server_cidr} ] }
       host_routes:
-        - destination: { get_param: client_cidr }
-          nexthop: { "Fn::Replace": [ {'.0/24': '.100'}, {get_param: server_cidr} ] }
         - destination: 0.0.0.0/0
           nexthop: { "Fn::Replace": [ {'.0/24': '.1'}, {get_param: server_cidr} ] }
+        - destination: { get_param: client_cidr }
+          nexthop: { "Fn::Replace": [ {'.0/24': '.100'}, {get_param: server_cidr} ] }
 
   subnet2:
     type: OS::Neutron::Subnet
@@ -128,10 +128,11 @@ resources:
       #  - start: { "Fn::Replace": [ {'.0/24': '.10'}, {get_param: client_cidr} ] }
       #    end: { "Fn::Replace": [ {'.0/24': '.249'}, {get_param: client_cidr} ] }
       host_routes:
-        - destination: { get_param: server_cidr }
-          nexthop: { "Fn::Replace": [ {'.0/24': '.100'}, {get_param: client_cidr} ] }
         - destination: 0.0.0.0/0
           nexthop: { "Fn::Replace": [ {'.0/24': '.1'}, {get_param: client_cidr} ] }
+        - destination: { get_param: server_cidr }
+          nexthop: { "Fn::Replace": [ {'.0/24': '.100'}, {get_param: client_cidr} ] }
+
 
   security_group:
     type: OS::Neutron::SecurityGroup
@@ -201,7 +202,16 @@ resources:
         - network: {get_resource: network}
       security_groups:
         - { get_resource: security_group }
-
+      user_data_format: RAW
+      user_data:
+        str_replace:
+          template: |
+            #!/usr/bin/env bash
+            sudo route del -net "$server_cidr$" dev eth0
+            sudo route add -net "$server_cidr$" dev tun0
+          params:
+            $server_cidr$: {get_param: server_cidr}
+             
   serverlanclient:
     type: OS::Nova::Server
     properties:
@@ -212,8 +222,15 @@ resources:
         - network: {get_resource: network2}
       security_groups:
         - { get_resource: security_group }
-
-
+      user_data_format: RAW
+      user_data:
+        str_replace:
+          template: |
+            #!/usr/bin/env bash
+            sudo route del -net "$client_cidr$" dev eth0
+            sudo route add -net "$client_cidr$" dev tun0
+          params:
+            $client_cidr$: {get_param: client_cidr}
   server:
     type: OS::Nova::Server
     properties:
@@ -232,6 +249,7 @@ resources:
             echo -n "$ssh_key_pub$" >> /home/cloud/.ssh/authorized_keys
             echo -n "$server_cidr$" >> /home/cloud/server_cidr
             echo -n "$client_cidr$" >> /home/cloud/client_cidr
+            #echo -n "$subnet_id_server$" >> /home/cloud/subnet_id_server
             sed 's/\(.*\)\/.*/\1/' < /home/cloud/server_cidr > /home/cloud/server_cidr.tmp | mv /home/cloud/server_cidr.tmp /home/cloud/server_cidr
             sed 's/\(.*\)\/.*/\1/' < /home/cloud/client_cidr > /home/cloud/client_cidr.tmp | mv /home/cloud/client_cidr.tmp /home/cloud/client_cidr
             echo -n "$ip_client$" >> /home/cloud/ip_client
@@ -266,6 +284,7 @@ resources:
             $ssh_key_pub$: { get_attr: [ my_key, public_key ] }
             $client_cidr$: {get_param: client_cidr}
             $server_cidr$: {get_param: server_cidr}
+            #$subnet_server_id$: { get_resource: [subnet,subnet_id] }
 
   client:
     type: OS::Nova::Server
@@ -283,6 +302,7 @@ resources:
             echo -n "$ip_server$" >> /home/cloud/ip_server
             echo -n "$ssh_key_priv$" >> /home/cloud/.ssh/my_key.pem
             echo -n "$ssh_key_pub$" >> /home/cloud/.ssh//authorized_keys
+            #echo -n "$subnet_id_client$" >> /home/cloud/subnet_id_client
             echo "$(date) - START" >> /var/log/vpn_srv.log
             export DEBIAN_FRONTEND=noninteractive
             apt-get update 2>&1 >> /var/log/vpn_client.log
@@ -301,17 +321,26 @@ resources:
             $ip_server$: { get_attr: [floating_ip, floating_ip_address] }
             $ssh_key_priv$: { get_attr: [ my_key, private_key ] }
             $ssh_key_pub$: { get_attr: [ my_key, public_key ] }
+            #$subnet_id_client$: { get_resource: [subnet2,subnet_id] }
 
 
 outputs:
 
-#  server_private_ip:
-#    description: IP address of server on private network
-#    value: { get_attr: [ server, first_address ] }
+  #subnet_id_server:
+  #  description: id du subnet server
+  #  value: { get_resource: [subnet,subnet_id] }
 
-#  client_private_ip:
-#    description: IP address of server on private network
-#    value: { get_attr: [ client, first_address ] }
+  #subnet_id_client:
+  #  description: id du subnet client
+  #  value: { get_resource: [subnet2,subnet_id] }
+
+  server_private_ip:
+    description: IP address of server on private network
+    value: { get_attr: [ server, first_address ] }
+
+  client_private_ip:
+    description: IP address of server on private network
+    value: { get_attr: [ client, first_address ] }
 
   floating_ip:
     description: IP address of the deployed compute server
