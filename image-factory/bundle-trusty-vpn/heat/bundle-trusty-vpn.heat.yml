@@ -208,10 +208,10 @@ resources:
           template: |
             #!/usr/bin/env bash
             sudo route del -net "$server_cidr$" dev eth0
-            sudo route add -net "$server_cidr$" dev tun0
+            sudo route add -net "$server_cidr$" dev eth0
           params:
             $server_cidr$: {get_param: server_cidr}
-             
+
   serverlanclient:
     type: OS::Nova::Server
     properties:
@@ -228,7 +228,7 @@ resources:
           template: |
             #!/usr/bin/env bash
             sudo route del -net "$client_cidr$" dev eth0
-            sudo route add -net "$client_cidr$" dev tun0
+            sudo route add -net "$client_cidr$" dev eth0
           params:
             $client_cidr$: {get_param: client_cidr}
   server:
@@ -247,12 +247,14 @@ resources:
             sudo mkdir /etc/vpnconf/
             echo -n "$ssh_key_priv$" >> /home/cloud/.ssh/my_key.pem
             echo -n "$ssh_key_pub$" >> /home/cloud/.ssh/authorized_keys
-            echo -n "$server_cidr$" >> /home/cloud/server_cidr
-            echo -n "$client_cidr$" >> /home/cloud/client_cidr
-            #echo -n "$subnet_id_server$" >> /home/cloud/subnet_id_server
-            sed 's/\(.*\)\/.*/\1/' < /home/cloud/server_cidr > /home/cloud/server_cidr.tmp | mv /home/cloud/server_cidr.tmp /home/cloud/server_cidr
-            sed 's/\(.*\)\/.*/\1/' < /home/cloud/client_cidr > /home/cloud/client_cidr.tmp | mv /home/cloud/client_cidr.tmp /home/cloud/client_cidr
-            echo -n "$ip_client$" >> /home/cloud/ip_client
+            echo -n "$server_cidr$" >> /home/cloud/config/server_cidr
+            echo -n "$client_cidr$" >> /home/cloud/config/client_cidr
+            sed 's/\(.*\)\/.*/\1/' < /home/cloud/config/server_cidr > /home/cloud/config/server_cidr.tmp | mv /home/cloud/config/server_cidr.tmp /home/cloud/config/server_cidr
+            sed 's/\(.*\)\/.*/\1/' < /home/cloud/config/client_cidr > /home/cloud/config/client_cidr.tmp | mv /home/cloud/config/client_cidr.tmp /home/cloud/config/client_cidr
+            sed -i -e "s/\//:/g" < /home/cloud/config/server_cidr > /home/cloud/config/server_cidr_gw.tmp
+            sed -i -e "s/0:24/100/g" < /home/cloud/config/server_cidr_gw > /home/cloud/config/server_cidr_gw.tmp
+            sed -i -e "s/0:24/1/g" < /home/cloud/config/server_cidr_gw > /home/cloud/config/server_cidr_gw_df.tmp
+            echo -n "$ip_client$" >> /home/cloud/config/ip_client
             echo -n "$COUNTRY$" >> /etc/vpnconf/COUNTRY
             echo -n "$PROVINCE$" >> /etc/vpnconf/PROVINCE
             echo -n "$CITY$" >> /etc/vpnconf/CITY
@@ -299,10 +301,16 @@ resources:
         str_replace:
           template: |
             #!/usr/bin/env bash
-            echo -n "$ip_server$" >> /home/cloud/ip_server
+            mkdir /home/cloud/config
+            echo -n "$ip_server$" >> /home/cloud/congig/ip_server
             echo -n "$ssh_key_priv$" >> /home/cloud/.ssh/my_key.pem
             echo -n "$ssh_key_pub$" >> /home/cloud/.ssh//authorized_keys
-            #echo -n "$subnet_id_client$" >> /home/cloud/subnet_id_client
+            echo -n "$server_cidr$" >> /home/cloud/config/server_cidr
+            sed 's/\(.*\)\/.*/\1/' < /home/cloud/config/server_cidr > /home/cloud/config/server_cidr.tmp | mv /home/cloud/config/server_cidr.tmp /home/cloud/config/server_cidr
+            sed 's/\(.*\)\/.*/\1/' < /home/cloud/config/client_cidr > /home/cloud/config/client_cidr.tmp | mv /home/cloud/config/client_cidr.tmp /home/cloud/config/client_cidr
+            sed -i -e "s/\//:/g" < /home/cloud/config/client_cidr > /home/cloud/config/client_cidr_gw.tmp
+            sed -i -e "s/0:24/100/g" < /home/cloud/config/client_cidr_gw > /home/cloud/config/client_cidr_gw.tmp
+            sed -i -e "s/0:24/1/g" < /home/cloud/config/client_cidr_gw > /home/cloud/config/client_cidr_gw_df.tmp
             echo "$(date) - START" >> /var/log/vpn_srv.log
             export DEBIAN_FRONTEND=noninteractive
             apt-get update 2>&1 >> /var/log/vpn_client.log
@@ -321,9 +329,8 @@ resources:
             $ip_server$: { get_attr: [floating_ip, floating_ip_address] }
             $ssh_key_priv$: { get_attr: [ my_key, private_key ] }
             $ssh_key_pub$: { get_attr: [ my_key, public_key ] }
-            #$subnet_id_client$: { get_resource: [subnet2,subnet_id] }
-
-
+            $server_cidr$: {get_param: server_cidr}
+            $client_cidr$: {get_param: client_cidr}
 outputs:
 
   #subnet_id_server:

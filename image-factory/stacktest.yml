@@ -9,7 +9,7 @@ parameters:
   key_name:
     type: string
     description: Name of keypair to assign to servers
-    default: mickael
+    default: my_key
 
   image:
     type: string
@@ -39,10 +39,12 @@ parameters:
   private_net_id:
     type: string
     description: ID of private network into which servers get deployed
+    default:
 
   private_subnet_id:
     type: string
     description: ID of private sub network into which servers get deployed
+    default:
 
 resources:
   server1:
