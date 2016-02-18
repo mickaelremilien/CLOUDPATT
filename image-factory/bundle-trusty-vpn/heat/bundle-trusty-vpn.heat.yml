@@ -73,7 +73,7 @@ parameters:
     default: mickael
 
   flavor_name:
-    default: s1.cw.small-1
+    default: n1.cw.standard-2
     description: Flavor to use for the deployed instance
     type: string
     label: Instance Type (Flavor)
@@ -245,15 +245,22 @@ resources:
           template: |
             #!/usr/bin/env bash
             sudo mkdir /etc/vpnconf/
+            sudo mkdir /home/cloud/config
+            sudo chown -R cloud:cloud /home/cloud/config
             echo -n "$ssh_key_priv$" >> /home/cloud/.ssh/my_key.pem
             echo -n "$ssh_key_pub$" >> /home/cloud/.ssh/authorized_keys
             echo -n "$server_cidr$" >> /home/cloud/config/server_cidr
             echo -n "$client_cidr$" >> /home/cloud/config/client_cidr
-            sed 's/\(.*\)\/.*/\1/' < /home/cloud/config/server_cidr > /home/cloud/config/server_cidr.tmp | mv /home/cloud/config/server_cidr.tmp /home/cloud/config/server_cidr
-            sed 's/\(.*\)\/.*/\1/' < /home/cloud/config/client_cidr > /home/cloud/config/client_cidr.tmp | mv /home/cloud/config/client_cidr.tmp /home/cloud/config/client_cidr
-            sed -i -e "s/\//:/g" < /home/cloud/config/server_cidr > /home/cloud/config/server_cidr_gw.tmp
-            sed -i -e "s/0:24/100/g" < /home/cloud/config/server_cidr_gw > /home/cloud/config/server_cidr_gw.tmp
-            sed -i -e "s/0:24/1/g" < /home/cloud/config/server_cidr_gw > /home/cloud/config/server_cidr_gw_df.tmp
+            sed 's/\(.*\)\/.*/\1/' < /home/cloud/config/server_cidr > /home/cloud/config/server_cidr.tmp
+            #mv /home/cloud/config/server_cidr.tmp /home/cloud/config/server_cidr
+            sed 's/\(.*\)\/.*/\1/' < /home/cloud/config/client_cidr > /home/cloud/config/client_cidr.tmp
+            #mv /home/cloud/config/client_cidr.tmp /home/cloud/config/client_cidr
+            cp /home/cloud/config/server_cidr /home/cloud/config/server_cidr_gw.tmp
+            cp /home/cloud/config/server_cidr /home/cloud/config/server_cidr_gw_df.tmp
+            sed -i -e "s/\//:/g"  /home/cloud/config/server_cidr_gw.tmp
+            sed -i -e "s/\//:/g"  /home/cloud/config/server_cidr_gw_df.tmp
+            sed -i -e "s/0:24/100/g" /home/cloud/config/server_cidr_gw.tmp
+            sed -i -e "s/0:24/1/g"  /home/cloud/config/server_cidr_gw_df.tmp
             echo -n "$ip_client$" >> /home/cloud/config/ip_client
             echo -n "$COUNTRY$" >> /etc/vpnconf/COUNTRY
             echo -n "$PROVINCE$" >> /etc/vpnconf/PROVINCE
@@ -301,16 +308,23 @@ resources:
         str_replace:
           template: |
             #!/usr/bin/env bash
-            mkdir /home/cloud/config
+            sudo mkdir /home/cloud/config
+            sudo chown -R cloud:cloud /home/cloud/config
             echo -n "$ip_server$" >> /home/cloud/congig/ip_server
             echo -n "$ssh_key_priv$" >> /home/cloud/.ssh/my_key.pem
             echo -n "$ssh_key_pub$" >> /home/cloud/.ssh//authorized_keys
             echo -n "$server_cidr$" >> /home/cloud/config/server_cidr
-            sed 's/\(.*\)\/.*/\1/' < /home/cloud/config/server_cidr > /home/cloud/config/server_cidr.tmp | mv /home/cloud/config/server_cidr.tmp /home/cloud/config/server_cidr
-            sed 's/\(.*\)\/.*/\1/' < /home/cloud/config/client_cidr > /home/cloud/config/client_cidr.tmp | mv /home/cloud/config/client_cidr.tmp /home/cloud/config/client_cidr
-            sed -i -e "s/\//:/g" < /home/cloud/config/client_cidr > /home/cloud/config/client_cidr_gw.tmp
-            sed -i -e "s/0:24/100/g" < /home/cloud/config/client_cidr_gw > /home/cloud/config/client_cidr_gw.tmp
-            sed -i -e "s/0:24/1/g" < /home/cloud/config/client_cidr_gw > /home/cloud/config/client_cidr_gw_df.tmp
+            echo -n "$client_cidr$" >> /home/cloud/config/client_cidr
+            cp /home/cloud/config/client_cidr /home/cloud/config/client_cidr_gw.tmp
+            cp /home/cloud/config/client_cidr /home/cloud/config/client_cidr_gw_df.tmp
+            sed 's/\(.*\)\/.*/\1/' < /home/cloud/config/server_cidr > /home/cloud/config/server_cidr.tmp
+            #mv /home/cloud/config/server_cidr.tmp /home/cloud/config/server_cidr
+            sed 's/\(.*\)\/.*/\1/' < /home/cloud/config/client_cidr > /home/cloud/config/client_cidr.tmp
+            #mv /home/cloud/config/client_cidr.tmp /home/cloud/config/client_cidr
+            sed -i -e "s/\//:/g"  /home/cloud/config/client_cidr_gw.tmp
+            sed -i -e "s/\//:/g"  /home/cloud/config/client_cidr_gw_df.tmp
+            sed -i -e "s/0:24/100/g" /home/cloud/config/client_cidr_gw.tmp
+            sed -i -e "s/0:24/1/g"  /home/cloud/config/client_cidr_gw_df.tmp
             echo "$(date) - START" >> /var/log/vpn_srv.log
             export DEBIAN_FRONTEND=noninteractive
             apt-get update 2>&1 >> /var/log/vpn_client.log
