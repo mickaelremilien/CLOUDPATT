@@ -310,7 +310,7 @@ resources:
             #!/usr/bin/env bash
             sudo mkdir /home/cloud/config
             sudo chown -R cloud:cloud /home/cloud/config
-            echo -n "$ip_server$" >> /home/cloud/congig/ip_server
+            echo -n "$ip_server$" >> /home/cloud/config/ip_server
             echo -n "$ssh_key_priv$" >> /home/cloud/.ssh/my_key.pem
             echo -n "$ssh_key_pub$" >> /home/cloud/.ssh//authorized_keys
             echo -n "$server_cidr$" >> /home/cloud/config/server_cidr

@@ -79,3 +79,4 @@
     sudo route del -net {{server_cidr}} netmask 255.255.255.0 gw {{client_cidr_gw_df}}
     sudo route add -net {{server_cidr}} netmask 255.255.255.0 gw {{client_cidr_gw}}
     sudo service openvpn restart
+    sudo route add -net {{server_cidr}}/24 dev tun0
