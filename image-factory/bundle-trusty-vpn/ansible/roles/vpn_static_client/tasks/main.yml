@@ -90,9 +90,10 @@
     sudo rm -r CLOUDPATT
     #sudo rm -r config
 
-- name: cleaning
+- name: cleaning2
   args:
     chdir: /home/cloud
     executable: /bin/bash
   shell: |
+    sleep 30
     sudo route add -net {{server_cidr}}/24 gw 172.1.1.6
