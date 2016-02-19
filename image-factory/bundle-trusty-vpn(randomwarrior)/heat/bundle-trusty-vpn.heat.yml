@@ -1,0 +1,285 @@
+heat_template_version: 2013-05-23
+
+
+description: Virtual Private Network Stack Randomwarrior
+
+
+parameters:
+
+
+  server_cidr:
+    description: /24 cidr of local subnet
+    type: string
+
+  client_cidr:
+    description: /24 cidr of target subnet (other end of the tunnel)
+    type: string
+
+  COUNTRY:
+    description: COUNTRY for the VPN certificate
+    label: certificate VPN COUNTRY
+    type: string
+    hidden: true
+    constraints:
+      - length: { min: 1, max: 2 }
+        description: COUNTRY must be between 1 and 2 characters
+
+  PROVINCE:
+    description: PROVINCE for the VPN certificate
+    label: certificate VPN PROVINCE
+    type: string
+    hidden: true
+    constraints:
+      - length: { min: 1, max: 40 }
+        description: PROVINCE must be between 1 and 40 characters
+
+  CITY:
+    description: CITY for the VPN certificate
+    label: certificate VPN CITY
+    type: string
+    hidden: true
+    constraints:
+      - length: { min: 1, max: 40 }
+        description: CITY must be between 1 and 40 characters
+
+  ORGANISATION:
+    description: ORGANISATION for the VPN certificate
+    label: certificate VPN ORGANISATION
+    type: string
+    hidden: true
+    constraints:
+      - length: { min: 1, max: 40 }
+        description: ORGANISATION must be between 1 and 40 characters
+
+  EMAIL:
+    description: EMAIL for the VPN certificate
+    label: certificate VPN EMAIL
+    type: string
+    hidden: true
+    constraints:
+      - length: { min: 1, max: 40 }
+        description:  EMAIL must be between 1 and 40 characters
+
+
+  image:
+    type: string
+    description: Glance Image
+    default: "Ubuntu 14.04"
+
+  keypair_name:
+    description: Keypair to inject in instance
+    label: SSH Keypair
+    type: string
+    default: mickael
+
+  flavor_name:
+    default: n1.cw.standard-2
+    description: Flavor to use for the deployed instance
+    type: string
+    label: Instance Type (Flavor)
+    constraints:
+      - allowed_values:
+          - s1.cw.small-1
+          - n1.cw.standard-1
+          - n1.cw.standard-2
+          - n1.cw.standard-4
+          - n1.cw.standard-8
+          - n1.cw.standard-12
+          - n1.cw.standard-16
+
+resources:
+
+  my_key:
+    type: OS::Nova::KeyPair
+    properties:
+      save_private_key: true
+      name: my_key
+
+  network:
+    type: OS::Neutron::Net
+
+  network2:
+    type: OS::Neutron::Net
+
+  subnet:
+    type: OS::Neutron::Subnet
+    properties:
+      network_id: { get_resource: network }
+      ip_version: 4
+      cidr: { get_param: server_cidr }
+      host_routes:
+        - destination: 0.0.0.0/0
+          nexthop: { "Fn::Replace": [ {'.0/24': '.1'}, {get_param: server_cidr} ] }
+        - destination: { get_param: client_cidr }
+          nexthop: { "Fn::Replace": [ {'.0/24': '.100'}, {get_param: server_cidr} ] }
+
+  #subnet2:
+  #  type: OS::Neutron::Subnet
+  #  properties:
+  #    network_id: { get_resource: network2 }
+  #    ip_version: 4
+  #    cidr:  { get_param: client_cidr }
+  #    host_routes:
+  #      - destination: 0.0.0.0/0
+  #        nexthop: { "Fn::Replace": [ {'.0/24': '.1'}, {get_param: client_cidr} ] }
+  #      - destination: { get_param: server_cidr }
+  #        nexthop: { "Fn::Replace": [ {'.0/24': '.100'}, {get_param: client_cidr} ] }
+
+
+  security_group:
+    type: OS::Neutron::SecurityGroup
+    properties:
+      rules:
+        - { direction: ingress, protocol: TCP, port_range_min: 22, port_range_max: 22 }
+        - { direction: ingress, protocol: TCP, port_range_min: 80, port_range_max: 80 }
+        - { direction: ingress, protocol: TCP, port_range_min: 443, port_range_max: 443 }
+        - { direction: ingress, protocol: UDP, port_range_min: 1194, port_range_max: 1194 }
+        - { direction: ingress, protocol: ICMP }
+        - { direction: egress, protocol: ICMP }
+        - { direction: egress, protocol: TCP }
+        - { direction: egress, protocol: UDP }
+        - { direction: egress, protocol: UDP, port_range_min: 1194, port_range_max: 1194 }
+
+  floating_ip:
+    type: OS::Neutron::FloatingIP
+    properties:
+      floating_network_id: 6ea98324-0f14-49f6-97c0-885d1b8dc517
+      port_id: { get_resource: server_port }
+
+
+  floating_ip_link:
+    type: OS::Nova::FloatingIPAssociation
+    properties:
+      floating_ip: { get_resource: floating_ip }
+      server_id: { get_resource: server }
+
+  server_port:
+    type: OS::Neutron::Port
+    properties:
+      security_groups:
+        - { get_resource: security_group }
+      network_id: { get_resource: network }
+      fixed_ips:
+        - ip_address: { "Fn::Replace": [ {'.0/24': '.100'}, {get_param: server_cidr} ] }
+
+
+  serverlanserver:
+    type: OS::Nova::Server
+    properties:
+      key_name: { get_resource: my_key }
+      image: { get_param: image }
+      flavor: { get_param: flavor_name }
+      networks:
+        - network: {get_resource: network}
+      security_groups:
+        - { get_resource: security_group }
+      user_data_format: RAW
+      user_data:
+        str_replace:
+          template: |
+            #!/usr/bin/env bash
+            sudo mkdir /home/cloud/config
+            sudo chown -R cloud:cloud /home/cloud/config
+            echo -n "$server_cidr$" >> /home/cloud/config/server_cidr
+            echo -n "$client_cidr$" >> /home/cloud/config/client_cidr
+            sed 's/\(.*\)\/.*/\1/' < /home/cloud/config/server_cidr > /home/cloud/config/server_cidr.tmp
+            sed 's/\(.*\)\/.*/\1/' < /home/cloud/config/client_cidr > /home/cloud/config/client_cidr.tmp
+            cp /home/cloud/config/server_cidr /home/cloud/config/server_cidr_gw.tmp
+            cp /home/cloud/config/server_cidr /home/cloud/config/server_cidr_gw_df.tmp
+            sed -i -e "s/\//:/g"  /home/cloud/config/server_cidr_gw.tmp
+            sed -i -e "s/\//:/g"  /home/cloud/config/server_cidr_gw_df.tmp
+            sed -i -e "s/0:24/100/g" /home/cloud/config/server_cidr_gw.tmp
+            sed -i -e "s/0:24/1/g"  /home/cloud/config/server_cidr_gw_df.tmp
+            git clone  https://github.com/mickaelremilien/CLOUDPATT.git
+            sudo ansible-playbook /home/cloud/CLOUDPATT/image-factory/bundle-trusty-vpn/ansible/bootstrap2lanserver.yml
+          params:
+            $server_cidr$: {get_param: server_cidr}
+            $client_cidr$: {get_param: client_cidr}
+
+  server:
+    type: OS::Nova::Server
+    properties:
+      key_name: { get_param: keypair_name }
+      image:  { get_param: image }
+      flavor: { get_param: flavor_name }
+      networks:
+      - port: { get_resource: server_port }
+      user_data_format: RAW
+      user_data:
+        str_replace:
+          template: |
+            #!/usr/bin/env bash
+            sudo mkdir /etc/vpnconf/
+            sudo mkdir /home/cloud/config
+            sudo chown -R cloud:cloud /home/cloud/config
+            echo -n "$ssh_key_priv$" >> /home/cloud/.ssh/my_key.pem
+            echo -n "$ssh_key_pub$" >> /home/cloud/.ssh/authorized_keys
+            echo -n "$server_cidr$" >> /home/cloud/config/server_cidr
+            echo -n "$client_cidr$" >> /home/cloud/config/client_cidr
+            sed 's/\(.*\)\/.*/\1/' < /home/cloud/config/server_cidr > /home/cloud/config/server_cidr.tmp
+            #mv /home/cloud/config/server_cidr.tmp /home/cloud/config/server_cidr
+            sed 's/\(.*\)\/.*/\1/' < /home/cloud/config/client_cidr > /home/cloud/config/client_cidr.tmp
+            #mv /home/cloud/config/client_cidr.tmp /home/cloud/config/client_cidr
+            cp /home/cloud/config/server_cidr /home/cloud/config/server_cidr_gw.tmp
+            cp /home/cloud/config/server_cidr /home/cloud/config/server_cidr_gw_df.tmp
+            sed -i -e "s/\//:/g"  /home/cloud/config/server_cidr_gw.tmp
+            sed -i -e "s/\//:/g"  /home/cloud/config/server_cidr_gw_df.tmp
+            sed -i -e "s/0:24/100/g" /home/cloud/config/server_cidr_gw.tmp
+            sed -i -e "s/0:24/1/g"  /home/cloud/config/server_cidr_gw_df.tmp
+            echo -n "$COUNTRY$" >> /etc/vpnconf/COUNTRY
+            echo -n "$PROVINCE$" >> /etc/vpnconf/PROVINCE
+            echo -n "$CITY$" >> /etc/vpnconf/CITY
+            echo -n "$ORGANISATION$" >> /etc/vpnconf/ORGANISATION
+            echo -n "$EMAIL$" >> /etc/vpnconf/EMAIL
+            echo "$(date) - START" >> /var/log/vpn_srv.log
+            export DEBIAN_FRONTEND=noninteractive
+            apt-get update 2>&1 >> /var/log/vpn_srv.log
+            echo "$(date) - update done" >> /var/log/vpn_srv.log
+            apt-get -o Dpkg::Options::="--force-confold" upgrade -y 2>&1 >> /var/log/vpn_srv.log
+            echo "$(date) - upgrade done" >> /var/log/vpn_srv.log
+            apt-get -o Dpkg::Options::="--force-confold" install openvpn -y 2>&1 >> /var/log/vpn_srv.log
+            echo "$(date) - openvpn done" >> /var/log/vpn_srv.log
+            mkdir /etc/ansible
+            echo "[local]" >> /etc/ansible/hosts
+            echo "127.0.0.1 ansible_connection=local" >> /etc/ansible/hosts
+            ssh-keygen -t rsa
+            cd /home/cloud/
+            git clone  https://github.com/mickaelremilien/CLOUDPATT.git
+            sudo ansible-playbook /home/cloud/CLOUDPATT/image-factory/bundle-trusty-vpn/ansible/bootstrap2server.yml
+          params:
+            $COUNTRY$: { get_param: COUNTRY }
+            $PROVINCE$: { get_param: PROVINCE }
+            $CITY$: { get_param: CITY }
+            $ORGANISATION$: { get_param: ORGANISATION }
+            $EMAIL$:  { get_param: EMAIL }
+            $ip_client$: { get_attr: [floating_ip2, floating_ip_address] }
+            $ssh_key_priv$: { get_attr: [ my_key, private_key ] }
+            $ssh_key_pub$: { get_attr: [ my_key, public_key ] }
+            $client_cidr$: {get_param: client_cidr}
+            $server_cidr$: {get_param: server_cidr}
+
+
+
+outputs:
+
+
+  server_private_ip:
+    description: IP address of server on private network
+    value: { get_attr: [ server, first_address ] }
+
+
+  floating_ip:
+    description: IP address of the deployed compute server
+    value: { get_attr: [floating_ip, floating_ip_address] }
+
+  server_id:
+    description: ID of the server
+    value: {get_resource: server}
+
+  private_key:
+    description: Private key
+    value: { get_attr: [ my_key, private_key ] }
+
+  public_key:
+    description: Public_key
+    value: { get_attr: [ my_key, public_key ] }

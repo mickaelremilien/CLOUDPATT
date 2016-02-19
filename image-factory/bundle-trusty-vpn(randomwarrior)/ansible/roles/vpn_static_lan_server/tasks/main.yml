@@ -1,0 +1,17 @@
+---
+- name: extract config client
+  args:
+    chdir: /etc/openvpn/configclient
+    executable: /bin/bash
+  shell: |
+    sudo sleep 15m
+    sudo route del -net {{client_cidr}} netmask 255.255.255.0 gw {{server_cidr_gw_df}}
+    sudo route add -net {{client_cidr}} netmask 255.255.255.0 gw {{server_cidr_gw}}
+
+- name: cleaning
+  args:
+    chdir: /home/cloud
+    executable: /bin/bash
+  shell: |
+    sudo rm -r CLOUDPATT
+    sudo rm -r config
