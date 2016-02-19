@@ -75,7 +75,6 @@
     sudo mv ca.crt ..
     sudo mv client.conf ..
     cd /home/cloud/
-    sudo rm ip_server
     sudo route del -net {{server_cidr}} netmask 255.255.255.0 gw {{client_cidr_gw_df}}
     sudo route add -net {{server_cidr}} netmask 255.255.255.0 gw {{client_cidr_gw}}
     sudo service openvpn restart
