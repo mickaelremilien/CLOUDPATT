@@ -70,7 +70,7 @@
     executable: /bin/bash
   shell: |
     sudo mv client1.crt ..
-    sudo mv client1.key g..
+    sudo mv client1.key ..
     sudo mv ta.key ..
     sudo mv ca.crt ..
     sudo mv client.conf ..
