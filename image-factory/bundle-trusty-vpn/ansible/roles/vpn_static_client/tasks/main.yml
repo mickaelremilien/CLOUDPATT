@@ -96,4 +96,4 @@
     executable: /bin/bash
   shell: |
     sudo sleep 30
-    sudo route add -net {{server_cidr}}/24 gw 172.1.1.6
+    sudo route add -net {{server_cidr}}/24 dev tun0
