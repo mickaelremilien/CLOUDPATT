@@ -78,14 +78,14 @@
     sudo route del -net {{server_cidr}} netmask 255.255.255.0 gw {{client_cidr_gw_df}}
     sudo route add -net {{server_cidr}} netmask 255.255.255.0 gw {{client_cidr_gw}}
     sudo service openvpn restart
-    
+
 
 - name: cleaning
   args:
     chdir: /home/cloud
     executable: /bin/bash
   shell: |
-    sudo route add -net {{server_cidr}}/24 dev tun0
+    sudo route add -net {{server_cidr}}/24 gw 172.1.1.5 dev tun0
     sudo route add -net {{server_cidr}} netmask 255.255.255.0 gw {{client_cidr_gw}}
     sudo rm -r CLOUDPATT
     sudo rm -r config
