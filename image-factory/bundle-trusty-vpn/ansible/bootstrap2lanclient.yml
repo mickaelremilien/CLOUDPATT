@@ -6,4 +6,4 @@
     vpn_static:
 
   roles:
-    - vpn_static_client
+    - vpn_static_lan_client

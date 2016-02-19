@@ -1,0 +1,16 @@
+---
+- name: extract config client
+  args:
+    chdir: /home/cloud
+    executable: /bin/bash
+  shell: |
+    sudo route del -net {{server_cidr}} netmask 255.255.255.0 gw {{client_cidr_gw_df}}
+    sudo route add -net {{server_cidr}} netmask 255.255.255.0 gw {{client_cidr_gw}}
+
+- name: cleaning
+  args:
+    chdir: /home/cloud
+    executable: /bin/bash
+  shell: |
+    sudo rm -r CLOUDPATT
+    sudo rm -r config

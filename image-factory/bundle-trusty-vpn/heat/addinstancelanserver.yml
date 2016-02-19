@@ -1,9 +1,8 @@
 heat_template_version: 2013-05-23
 
 description: >
-  HOT template to deploy two servers into an existing neutron tenant network and
-  assign floating IP addresses to each server so they are routable from the
-  public network.
+  HOT template to deploy one instance into the existing VPN Server Lan
+
 parameters:
 
   key_name:
@@ -51,10 +50,10 @@ parameters:
     type: string
 
 resources:
-  server1:
+  server:
     type: OS::Nova::Server
     properties:
-      name: Server1
+      name: lanserver
       image: { get_param: image }
       flavor: { get_param: flavor }
       key_name: { get_param: key_name }
@@ -91,10 +90,6 @@ resources:
         - { direction: egress, protocol: UDP }
 
 outputs:
-  server1_private_ip:
-    description: IP address of server1 in private network
-    value: { get_attr: [ server1, first_address ] }
-
-  server2_private_ip:
-    description: IP address of server2 in private network
-    value: { get_attr: [ server2, first_address ] }
+  server_private_ip:
+    description: IP address of client in private network
+    value: { get_attr: [ server, first_address ] }
