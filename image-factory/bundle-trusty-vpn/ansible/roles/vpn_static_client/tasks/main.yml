@@ -95,9 +95,9 @@
   network:
     container_interface: "tun0"
     static_routes:
-      - cidr: {{server_cidr}}/12
+      - cidr: "{{server_cidr}}"/24
         gateway: 172.1.1.5
-        
+
 - name: adding route
   network_ether_interfaces:
        - device: tun0
