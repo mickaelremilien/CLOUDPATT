@@ -103,6 +103,6 @@
        - device: tun0
          bootproto: static
          route:
-          - network: {{server_cidr}}
+          - network: "{{server_cidr}}"
             netmask: 255.255.255.0
             gateway:  172.1.1.5
