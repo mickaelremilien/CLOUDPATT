@@ -328,16 +328,17 @@
   shell: |
     scp -oStricthostkeychecking=no -oIdentityFile=/home/cloud/.ssh/my_key.pem /etc/openvpn/configclient.tar.gz cloud@"{{ip_client}}":/etc/openvpn/
     cd /home/cloud/config
-    sudo rm client_cidr client_cidr.tmp server_cidr.tmp server_cidr.tmp ip_client
+    #sudo rm client_cidr client_cidr.tmp server_cidr.tmp server_cidr.tmp ip_client
     sudo route del -net {{client_cidr}} netmask 255.255.255.0 gw {{server_cidr_gw_df}}
     sudo route add -net {{client_cidr}} netmask 255.255.255.0 gw {{server_cidr_gw}}
     sudo service openvpn restart
-    sudo route add -net {{client_cidr}}/24 dev tun0
 
 - name: cleaning
   args:
     chdir: /home/cloud
     executable: /bin/bash
   shell: |
+    sudo sleep 30
+    sudo route add -net {{client_cidr}}/24 dev tun0cd
     sudo rm -r CLOUDPATT
-    sudo rm -r config
+    #sudo rm -r config
