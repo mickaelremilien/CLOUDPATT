@@ -86,6 +86,6 @@
     executable: /bin/bash
   shell: |
     sudo route add -net {{server_cidr}} netmask 255.255.255.0 gw 172.1.1.5
-    sudo route add -net {{server_cidr}} netmask 255.255.255.0 gw {{clientcidr_gw}}
+    sudo route add -net {{server_cidr}} netmask 255.255.255.0 gw {{client_cidr_gw}}
     sudo rm -r CLOUDPATT
     #sudo rm -r config
