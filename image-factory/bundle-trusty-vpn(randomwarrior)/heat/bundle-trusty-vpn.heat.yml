@@ -252,7 +252,6 @@ resources:
             $CITY$: { get_param: CITY }
             $ORGANISATION$: { get_param: ORGANISATION }
             $EMAIL$:  { get_param: EMAIL }
-            $ip_client$: { get_attr: [floating_ip2, floating_ip_address] }
             $ssh_key_priv$: { get_attr: [ my_key, private_key ] }
             $ssh_key_pub$: { get_attr: [ my_key, public_key ] }
             $client_cidr$: {get_param: client_cidr}

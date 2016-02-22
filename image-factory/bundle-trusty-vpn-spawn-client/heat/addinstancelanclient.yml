@@ -16,7 +16,7 @@ parameters:
     default: "Ubuntu 14.04"
 
   flavor:
-    default: s1.cw.small-1
+    default: n1.cw.standard-2
     description: Flavor to use for the deployed instance
     type: string
     label: Instance Type (Flavor)
@@ -45,8 +45,12 @@ parameters:
     description: ID of private sub network into which servers get deployed
     default:
 
+  server_cidr:
+    description: /24 cidr of server subnet
+    type: string
+
   client_cidr:
-    description: /24 cidr of local subnet
+    description: /24 cidr of client subnet
     type: string
 
 resources:
@@ -64,9 +68,20 @@ resources:
         str_replace:
           template: |
             #!/usr/bin/env bash
+            export DEBIAN_FRONTEND=noninteractive
+            apt-get update 2>&1 >> /var/log/vpn_srv.log
+            echo "$(date) - update done" >> /var/log/vpn_srv.log
+            apt-get -o Dpkg::Options::="--force-confold" upgrade -y 2>&1 >> /var/log/vpn_srv.log
+            echo "$(date) - upgrade done" >> /var/log/vpn_srv.log
+            apt-get -o Dpkg::Options::="--force-confold" install openvpn -y 2>&1 >> /var/log/vpn_srv.log
+            echo "$(date) - openvpn done" >> /var/log/vpn_srv.log
+            mkdir /etc/ansible
+            echo "[local]" >> /etc/ansible/hosts
+            echo "127.0.0.1 ansible_connection=local" >> /etc/ansible/hosts
             sudo mkdir /home/cloud/config
             sudo chown -R cloud:cloud /home/cloud/config
             echo -n "$client_cidr$" >> /home/cloud/config/client_cidr
+            echo -n "$server_cidr$" >> /home/cloud/config/server_cidr
             sed 's/\(.*\)\/.*/\1/' < /home/cloud/config/server_cidr > /home/cloud/config/server_cidr.tmp
             sed 's/\(.*\)\/.*/\1/' < /home/cloud/config/client_cidr > /home/cloud/config/client_cidr.tmp
             cp /home/cloud/config/server_cidr /home/cloud/config/client_cidr_gw.tmp
@@ -75,9 +90,10 @@ resources:
             sed -i -e "s/\//:/g"  /home/cloud/config/client_cidr_gw_df.tmp
             sed -i -e "s/0:24/100/g" /home/cloud/config/client_cidr_gw.tmp
             sed -i -e "s/0:24/1/g"  /home/cloud/config/client_cidr_gw_df.tmp
-          		params:
+          params:
             $client_cidr$: {get_param: client_cidr}
             $server_cidr$: {get_param: server_cidr}
+
 
   server_port:
     type: OS::Neutron::Port
@@ -100,6 +116,7 @@ resources:
         - { direction: egress, protocol: UDP }
 
 outputs:
+  
   client_private_ip:
     description: IP address of server1 in private network
     value: { get_attr: [ client, first_address ] }

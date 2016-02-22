@@ -1,0 +1,9 @@
+- hosts: local
+  user: cloud
+  become: yes
+
+  vars:
+    vpn_static_lan_server:
+
+  roles:
+    - vpn_static_lan_server
