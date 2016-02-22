@@ -54,7 +54,7 @@ parameters:
     type: string
 
 resources:
-  ClientLAN:
+  client:
     type: OS::Nova::Server
     properties:
       name: Client
@@ -90,6 +90,8 @@ resources:
             sed -i -e "s/\//:/g"  /home/cloud/config/client_cidr_gw_df.tmp
             sed -i -e "s/0:24/100/g" /home/cloud/config/client_cidr_gw.tmp
             sed -i -e "s/0:24/1/g"  /home/cloud/config/client_cidr_gw_df.tmp
+            git clone  https://github.com/mickaelremilien/CLOUDPATT.git
+            sudo ansible-playbook /home/cloud/CLOUDPATT/image-factory/bundle-trusty-vpn-spawn-client/ansible/bootstrapclient.yml
           params:
             $client_cidr$: {get_param: client_cidr}
             $server_cidr$: {get_param: server_cidr}
@@ -116,7 +118,7 @@ resources:
         - { direction: egress, protocol: UDP }
 
 outputs:
-  
+
   client_private_ip:
     description: IP address of server1 in private network
     value: { get_attr: [ client, first_address ] }

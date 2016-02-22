@@ -79,7 +79,6 @@ resources:
             echo "[local]" >> /etc/ansible/hosts
             echo "127.0.0.1 ansible_connection=local" >> /etc/ansible/hosts
             cd /home/cloud/
-            git clone  https://github.com/mickaelremilien/CLOUDPATT.git
             sudo mkdir /home/cloud/config
             sudo chown -R cloud:cloud /home/cloud/config
             echo -n "$client_cidr$" >> /home/cloud/config/client_cidr
@@ -92,6 +91,8 @@ resources:
             sed -i -e "s/\//:/g"  /home/cloud/config/server_cidr_gw_df.tmp
             sed -i -e "s/0:24/100/g" /home/cloud/config/server_cidr_gw.tmp
             sed -i -e "s/0:24/1/g"  /home/cloud/config/server_cidr_gw_df.tmp
+            git clone  https://github.com/mickaelremilien/CLOUDPATT.git
+            sudo ansible-playbook /home/cloud/CLOUDPATT/image-factory/bundle-trusty-vpn-spawn-server/ansible/bootstrapserver.yml
           params:
             $server_cidr$: {get_param: server_cidr}
             $client_cidr$: {get_param: client_cidr}
@@ -117,7 +118,7 @@ resources:
         - { direction: egress, protocol: UDP }
 
 outputs:
-  
+
   server_private_ip:
     description: IP address of client in private network
     value: { get_attr: [ server, first_address ] }
