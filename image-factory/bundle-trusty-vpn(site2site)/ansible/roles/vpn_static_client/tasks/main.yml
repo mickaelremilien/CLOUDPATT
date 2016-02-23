@@ -95,5 +95,5 @@
     chdir: /home/cloud
     executable: /bin/bash
   shell: |
-    sudo sleep 2m
-    sudo route add -net {{server_cidr}}/24 gw dev tun0
+    sudo sleep 30
+    sudo route add -net {{server_cidr}}/24 dev tun0
