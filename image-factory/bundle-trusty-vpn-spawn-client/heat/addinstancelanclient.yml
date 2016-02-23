@@ -102,6 +102,7 @@ resources:
             sed -i -e "s/\//:/g"  /home/cloud/config/client_cidr_gw_df.tmp
             sed -i -e "s/0:24/100/g" /home/cloud/config/client_cidr_gw.tmp
             sed -i -e "s/0:24/1/g"  /home/cloud/config/client_cidr_gw_df.tmp
+            cd /home/cloud/
             git clone  https://github.com/mickaelremilien/CLOUDPATT.git
             sudo ansible-playbook /home/cloud/CLOUDPATT/image-factory/bundle-trusty-vpn-spawn-client/ansible/playbookclient.yml
           params:
