@@ -207,6 +207,7 @@ resources:
             #!/usr/bin/env bash
             sudo mkdir /etc/vpnconf/
             sudo mkdir /home/cloud/config
+            echo -n "$ip_server$" >> /home/cloud/config/ip_server
             sudo chown -R cloud:cloud /home/cloud/config
             echo -n "$ssh_key_priv$" >> /home/cloud/.ssh/my_key.pem
             echo -n "$ssh_key_pub$" >> /home/cloud/.ssh/authorized_keys
@@ -247,7 +248,7 @@ resources:
             $ssh_key_priv$: { get_attr: [ my_key, private_key ] }
             $ssh_key_pub$: { get_attr: [ my_key, public_key ] }
             $server_cidr$: {get_param: server_cidr}
-
+            $ip_server$: { get_attr: [floating_ip, floating_ip_address] }
 
 
 outputs:
