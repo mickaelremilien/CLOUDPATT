@@ -411,6 +411,22 @@ outputs:
     description: ID of the server
     value: { get_resource: client }
 
+  subnet_server_id:
+    description: ID of the private subnet associate to the server
+    value: {get_resource: subnet}
+
+  subnet_client_id:
+    description: ID of the private subnet associate to the client
+    value: {get_resource: subnet2}
+
+  network_server_id:
+    description: ID of the private network associate to the server
+    value: {get_resource: network}
+
+  network_client_id:
+    description: ID of the private network associate to the client
+    value: {get_resource: network2}
+    
   private_key:
     description: Private key
     value: { get_attr: [ my_key, private_key ] }
