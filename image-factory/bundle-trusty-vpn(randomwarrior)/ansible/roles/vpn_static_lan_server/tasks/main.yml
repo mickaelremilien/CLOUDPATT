@@ -1,5 +1,5 @@
 ---
-- name: extract config client
+- name: route setting up 
   args:
     chdir: /etc/openvpn/configclient
     executable: /bin/bash

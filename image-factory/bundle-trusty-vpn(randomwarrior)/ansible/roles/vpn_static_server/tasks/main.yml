@@ -245,7 +245,12 @@
     mode=644
     backup=yes
 
-
+- name: modification configclient
+  replace:
+    dest=/etc/openvpn/configclient/client.conf
+    regexp='X.X.X.X'
+    replace='{{ip_server}}'
+    
 - name: pack config client
   args:
     chdir: /etc/openvpn/
@@ -279,6 +284,7 @@
     owner=cloud
     group=cloud
     mode=600
+
 
 - name: route setting up
   args:

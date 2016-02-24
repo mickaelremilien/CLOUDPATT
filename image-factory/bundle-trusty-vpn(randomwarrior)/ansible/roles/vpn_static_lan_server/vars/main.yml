@@ -1,8 +1,8 @@
 ---
 vpn_static_client:
 server_cidr: "{{ lookup('file', '/home/cloud/config/server_cidr.tmp') }}"
-client_cidr: "{{ lookup('file', '/home/cloud/config/client_cidr.tmp') }}"
+#client_cidr: "{{ lookup('file', '/home/cloud/config/client_cidr.tmp') }}"
 server_cidr_gw: "{{ lookup('file', '/home/cloud/config/server_cidr_gw.tmp') }}"
-client_cidr_gw: "{{ lookup('file', '/home/cloud/config/client_cidr_gw.tmp') }}"
+#client_cidr_gw: "{{ lookup('file', '/home/cloud/config/client_cidr_gw.tmp') }}"
 server_cidr_gw_df: "{{ lookup('file', '/home/cloud/config/server_cidr_gw_df.tmp') }}"
-client_cidr_gw_df: "{{ lookup('file', '/home/cloud/config/client_cidr_gw_df.tmp') }}"
+#client_cidr_gw_df: "{{ lookup('file', '/home/cloud/config/client_cidr_gw_df.tmp') }}"
