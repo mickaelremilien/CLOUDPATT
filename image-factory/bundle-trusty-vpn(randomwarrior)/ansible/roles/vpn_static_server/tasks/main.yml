@@ -260,7 +260,7 @@
     sudo cp ta.key configclient
     sudo cp ca.crt configclient
     mv client.conf configclient
-    
+
 - name: modification configclient
   replace:
     dest=/etc/openvpn/configclient/client.conf
@@ -295,15 +295,12 @@
     mode=600
 
 
-- name: route setting up
+- name: starting openvpn
   args:
     chdir: /etc/openvpn/
     executable: /bin/bash
   shell: |
-    sudo route del -net {{client_cidr}} netmask 255.255.255.0 gw {{server_cidr_gw_df}}
     sudo service openvpn restart
-    sudo sleep 30
-    sudo route add -net {{client_cidr}}/24 dev tun0
 
 - name: cleaning
   args:
@@ -311,4 +308,4 @@
     executable: /bin/bash
   shell: |
     sudo rm -r CLOUDPATT
-    sudo rm -r config
+    #sudo rm -r config
