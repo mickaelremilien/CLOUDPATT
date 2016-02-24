@@ -5,8 +5,8 @@
     executable: /bin/bash
   shell: |
     sudo sleep 15m
-    sudo route del -net {{client_cidr}} netmask 255.255.255.0 gw {{server_cidr_gw_df}}
-    sudo route add -net {{client_cidr}} netmask 255.255.255.0 gw {{server_cidr_gw}}
+    sudo route del -net 0.0.0.0 netmask 255.255.255.0 gw {{server_cidr_gw_df}}
+    sudo route add -net 0.0.0.0 netmask 255.255.255.0 gw {{server_cidr_gw}}
 
 - name: cleaning
   args:

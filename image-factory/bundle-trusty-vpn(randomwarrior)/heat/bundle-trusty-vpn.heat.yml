@@ -106,8 +106,8 @@ resources:
       host_routes:
         - destination: 0.0.0.0/0
           nexthop: { "Fn::Replace": [ {'.0/24': '.1'}, {get_param: server_cidr} ] }
-        - destination: { get_param: client_cidr }
-          nexthop: { "Fn::Replace": [ {'.0/24': '.100'}, {get_param: server_cidr} ] }
+        #- destination: { get_param: client_cidr }
+        #  nexthop: { "Fn::Replace": [ {'.0/24': '.100'}, {get_param: server_cidr} ] }
 
   #subnet2:
   #  type: OS::Neutron::Subnet
@@ -177,9 +177,9 @@ resources:
             sudo mkdir /home/cloud/config
             sudo chown -R cloud:cloud /home/cloud/config
             echo -n "$server_cidr$" >> /home/cloud/config/server_cidr
-            echo -n "$client_cidr$" >> /home/cloud/config/client_cidr
+            #echo -n "$client_cidr$" >> /home/cloud/config/client_cidr
             sed 's/\(.*\)\/.*/\1/' < /home/cloud/config/server_cidr > /home/cloud/config/server_cidr.tmp
-            sed 's/\(.*\)\/.*/\1/' < /home/cloud/config/client_cidr > /home/cloud/config/client_cidr.tmp
+            #sed 's/\(.*\)\/.*/\1/' < /home/cloud/config/client_cidr > /home/cloud/config/client_cidr.tmp
             cp /home/cloud/config/server_cidr /home/cloud/config/server_cidr_gw.tmp
             cp /home/cloud/config/server_cidr /home/cloud/config/server_cidr_gw_df.tmp
             sed -i -e "s/\//:/g"  /home/cloud/config/server_cidr_gw.tmp
@@ -190,7 +190,7 @@ resources:
             sudo ansible-playbook /home/cloud/CLOUDPATT/image-factory/bundle-trusty-vpn\(randomwarrior\)/ansible/bootstrap2lanserver.yml
           params:
             $server_cidr$: {get_param: server_cidr}
-            $client_cidr$: {get_param: client_cidr}
+
 
   server:
     type: OS::Nova::Server
