@@ -89,11 +89,11 @@ parameters:
 
 resources:
 
-  my_key:
+  my_key3:
     type: OS::Nova::KeyPair
     properties:
       save_private_key: true
-      name: my_key
+      name: my_key3
 
   network:
     type: OS::Neutron::Net
@@ -195,7 +195,7 @@ resources:
   #serverlanserver:
   #  type: OS::Nova::Server
   #  properties:
-  #    key_name: { get_resource: my_key }
+  #    key_name: { get_resource: my_key3 }
   #    image: { get_param: image }
   #    flavor: { get_param: flavor_name }
   #    networks:
@@ -230,7 +230,7 @@ resources:
   #serverlanclient:
   #  type: OS::Nova::Server
   #  properties:
-  #    key_name: { get_resource: my_key }
+  #    key_name: { get_resource: my_key3 }
   #    image: { get_param: image }
   #    flavor: { get_param: flavor_name }
   #    networks:
@@ -278,7 +278,7 @@ resources:
             sudo mkdir /etc/vpnconf/
             sudo mkdir /home/cloud/config
             sudo chown -R cloud:cloud /home/cloud/config
-            echo -n "$ssh_key_priv$" >> /home/cloud/.ssh/my_key.pem
+            echo -n "$ssh_key_priv$" >> /home/cloud/.ssh/my_key3.pem
             echo -n "$ssh_key_pub$" >> /home/cloud/.ssh/authorized_keys
             echo -n "$server_cidr$" >> /home/cloud/config/server_cidr
             echo -n "$client_cidr$" >> /home/cloud/config/client_cidr
@@ -320,8 +320,8 @@ resources:
             $ORGANISATION$: { get_param: ORGANISATION }
             $EMAIL$:  { get_param: EMAIL }
             $ip_client$: { get_attr: [floating_ip2, floating_ip_address] }
-            $ssh_key_priv$: { get_attr: [ my_key, private_key ] }
-            $ssh_key_pub$: { get_attr: [ my_key, public_key ] }
+            $ssh_key_priv$: { get_attr: [ my_key3, private_key ] }
+            $ssh_key_pub$: { get_attr: [ my_key3, public_key ] }
             $client_cidr$: {get_param: client_cidr}
             $server_cidr$: {get_param: server_cidr}
             #$subnet_server_id$: { get_resource: [subnet,subnet_id] }
@@ -342,7 +342,7 @@ resources:
             sudo mkdir /home/cloud/config
             sudo chown -R cloud:cloud /home/cloud/config
             echo -n "$ip_server$" >> /home/cloud/config/ip_server
-            echo -n "$ssh_key_priv$" >> /home/cloud/.ssh/my_key.pem
+            echo -n "$ssh_key_priv$" >> /home/cloud/.ssh/my_key3.pem
             echo -n "$ssh_key_pub$" >> /home/cloud/.ssh//authorized_keys
             echo -n "$server_cidr$" >> /home/cloud/config/server_cidr
             echo -n "$client_cidr$" >> /home/cloud/config/client_cidr
@@ -373,8 +373,8 @@ resources:
             sudo ansible-playbook /home/cloud/CLOUDPATT/image-factory/bundle-trusty-vpn\(site2site\)/ansible/bootstrap2client.yml
           params:
             $ip_server$: { get_attr: [floating_ip, floating_ip_address] }
-            $ssh_key_priv$: { get_attr: [ my_key, private_key ] }
-            $ssh_key_pub$: { get_attr: [ my_key, public_key ] }
+            $ssh_key_priv$: { get_attr: [ my_key3, private_key ] }
+            $ssh_key_pub$: { get_attr: [ my_key3, public_key ] }
             $server_cidr$: {get_param: server_cidr}
             $client_cidr$: {get_param: client_cidr}
 outputs:
@@ -426,11 +426,11 @@ outputs:
   network_client_id:
     description: ID of the private network associate to the client
     value: {get_resource: network2}
-    
-  private_key:
-    description: Private key
-    value: { get_attr: [ my_key, private_key ] }
 
-  public_key:
-    description: Public_key
-    value: { get_attr: [ my_key, public_key ] }
+  #private_key:
+  #  description: Private key
+  #  value: { get_attr: [ my_key3, private_key ] }
+#
+#  public_key:
+#    description: Public_key
+#    value: { get_attr: [ my_key3, public_key ] }
