@@ -11,10 +11,6 @@ parameters:
     description: /24 cidr of local subnet
     type: string
 
-  client_cidr:
-    description: /24 cidr of target subnet (other end of the tunnel)
-    type: string
-
   COUNTRY:
     description: COUNTRY for the VPN certificate
     label: certificate VPN COUNTRY
