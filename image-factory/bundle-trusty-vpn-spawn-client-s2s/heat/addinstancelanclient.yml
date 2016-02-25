@@ -8,7 +8,7 @@ parameters:
   key_name:
     type: string
     description: Name of keypair to assign to servers
-    default: my_key
+    default: my_key3
 
   image:
     type: string
