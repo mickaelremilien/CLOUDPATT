@@ -16,19 +16,24 @@ parameters:
     default: "Ubuntu 14.04"
 
   flavor:
-    default: n1.cw.standard-2
+    default: n2.cw.standard-2
     description: Flavor to use for the deployed instance
     type: string
     label: Instance Type (Flavor)
     constraints:
       - allowed_values:
-          - s1.cw.small-1
-          - n1.cw.standard-1
-          - n1.cw.standard-2
-          - n1.cw.standard-4
-          - n1.cw.standard-8
-          - n1.cw.standard-12
-          - n1.cw.standard-16
+        - t1.cw.tiny
+        - s1.cw.small-1
+        - n2.cw.standard-1
+        - n2.cw.standard-2
+        - n2.cw.standard-4
+        - n2.cw.standard-8
+        - n2.cw.standard-12
+        - n2.cw.standard-16
+        - n2.cw.highmem-2
+        - n2.cw.highmem-4
+        - n2.cw.highmem-8
+        - n2.cw.highmem-12
 
   public_net_id:
     type: string
@@ -79,7 +84,6 @@ resources:
             mkdir /etc/ansible
             echo "[local]" >> /etc/ansible/hosts
             echo "127.0.0.1 ansible_connection=local" >> /etc/ansible/hosts
-            cd /home/cloud/
             sudo mkdir /home/cloud/config
             sudo chown -R cloud:cloud /home/cloud/config
             echo -n "$client_cidr$" >> /home/cloud/config/client_cidr
@@ -92,7 +96,8 @@ resources:
             sed -i -e "s/\//:/g"  /home/cloud/config/server_cidr_gw_df.tmp
             sed -i -e "s/0:24/100/g" /home/cloud/config/server_cidr_gw.tmp
             sed -i -e "s/0:24/1/g"  /home/cloud/config/server_cidr_gw_df.tmp
-            sudo route add -net "$client_cidr$" gw $(cat /home/cloud/config/server_cidr_gw_df.tmp)
+            sudo route del -net "$client_cidr$" gw $(cat /home/cloud/config/server_cidr_gw_df.tmp)
+            sudo sleep 3
             sudo route add -net "$client_cidr$" gw $(cat /home/cloud/config/server_cidr_gw.tmp)
           params:
             $server_cidr$: {get_param: server_cidr}
