@@ -109,9 +109,6 @@ resources:
       network_id: { get_resource: network }
       ip_version: 4
       cidr: { get_param: server_cidr }
-      #allocation_pools:
-      #  - start: { "Fn::Replace": [ {'.0/24': '.10'}, {get_param: server_cidr} ] }
-      #    end: { "Fn::Replace": [ {'.0/24': '.249'}, {get_param: server_cidr} ] }
       host_routes:
         - destination: 0.0.0.0/0
           nexthop: { "Fn::Replace": [ {'.0/24': '.1'}, {get_param: server_cidr} ] }
@@ -124,9 +121,6 @@ resources:
       network_id: { get_resource: network2 }
       ip_version: 4
       cidr:  { get_param: client_cidr }
-      #allocation_pools:
-      #  - start: { "Fn::Replace": [ {'.0/24': '.10'}, {get_param: client_cidr} ] }
-      #    end: { "Fn::Replace": [ {'.0/24': '.249'}, {get_param: client_cidr} ] }
       host_routes:
         - destination: 0.0.0.0/0
           nexthop: { "Fn::Replace": [ {'.0/24': '.1'}, {get_param: client_cidr} ] }
@@ -180,7 +174,7 @@ resources:
       network_id: { get_resource: network }
       fixed_ips:
         - ip_address: { "Fn::Replace": [ {'.0/24': '.100'}, {get_param: server_cidr} ] }
-        #- subnet_id: { get_resource: subnet }
+
 
   client_port:
     type: OS::Neutron::Port
@@ -190,77 +184,8 @@ resources:
       network_id: { get_resource: network2 }
       fixed_ips:
         - ip_address: { "Fn::Replace": [ {'.0/24': '.100'}, {get_param: client_cidr} ] }
-        #- subnet_id: { get_resource: subnet2 }
 
-  #serverlanserver:
-  #  type: OS::Nova::Server
-  #  properties:
-  #    key_name: { get_resource: my_key3 }
-  #    image: { get_param: image }
-  #    flavor: { get_param: flavor_name }
-  #    networks:
-  #      - network: {get_resource: network}
-  #    security_groups:
-  #      - { get_resource: security_group }
-  #    user_data_format: RAW
-  #    user_data:
-  #      str_replace:
-  #        template: |
-  #          #!/usr/bin/env bash
-  #          sudo mkdir /home/cloud/config
-  #          sudo chown -R cloud:cloud /home/cloud/config
-  #          echo -n "$server_cidr$" >> /home/cloud/config/server_cidr
-  #          echo -n "$client_cidr$" >> /home/cloud/config/client_cidr
-  #          sed 's/\(.*\)\/.*/\1/' < /home/cloud/config/server_cidr > /home/cloud/config/server_cidr.tmp
-  #          #mv /home/cloud/config/server_cidr.tmp /home/cloud/config/server_cidr
-  #          sed 's/\(.*\)\/.*/\1/' < /home/cloud/config/client_cidr > /home/cloud/config/client_cidr.tmp
-  #          #mv /home/cloud/config/client_cidr.tmp /home/cloud/config/client_cidr
-  #          cp /home/cloud/config/server_cidr /home/cloud/config/server_cidr_gw.tmp
-  #          cp /home/cloud/config/server_cidr /home/cloud/config/server_cidr_gw_df.tmp
-  #          sed -i -e "s/\//:/g"  /home/cloud/config/server_cidr_gw.tmp
-  #          sed -i -e "s/\//:/g"  /home/cloud/config/server_cidr_gw_df.tmp
-  #          sed -i -e "s/0:24/100/g" /home/cloud/config/server_cidr_gw.tmp
-  #          sed -i -e "s/0:24/1/g"  /home/cloud/config/server_cidr_gw_df.tmp
-  #          git clone  https://github.com/mickaelremilien/CLOUDPATT.git
-  #          sudo ansible-playbook /home/cloud/CLOUDPATT/image-factory/bundle-trusty-vpn/ansible/bootstrap2lanserver.yml
-  #        params:
-  #          $server_cidr$: {get_param: server_cidr}
-  #          $client_cidr$: {get_param: client_cidr}
 
-  #serverlanclient:
-  #  type: OS::Nova::Server
-  #  properties:
-  #    key_name: { get_resource: my_key3 }
-  #    image: { get_param: image }
-  #    flavor: { get_param: flavor_name }
-  #    networks:
-  #      - network: {get_resource: network2}
-  #    security_groups:
-  #      - { get_resource: security_group }
-  #    user_data_format: RAW
-  #    user_data:
-  #      str_replace:
-  #        template: |
-  #          #!/usr/bin/env bash
-  #          sudo mkdir /home/cloud/config
-  #          sudo chown -R cloud:cloud /home/cloud/config
-  #          echo -n "$server_cidr$" >> /home/cloud/config/server_cidr
-  #          echo -n "$client_cidr$" >> /home/cloud/config/client_cidr
-  #          cp /home/cloud/config/client_cidr /home/cloud/config/client_cidr_gw.tmp
-  #          cp /home/cloud/config/client_cidr /home/cloud/config/client_cidr_gw_df.tmp
-  #          sed 's/\(.*\)\/.*/\1/' < /home/cloud/config/server_cidr > /home/cloud/config/server_cidr.tmp
-  #          #mv /home/cloud/config/server_cidr.tmp /home/cloud/config/server_cidr
-  #          sed 's/\(.*\)\/.*/\1/' < /home/cloud/config/client_cidr > /home/cloud/config/client_cidr.tmp
-  #          #mv /home/cloud/config/client_cidr.tmp /home/cloud/config/client_cidr
-  #          sed -i -e "s/\//:/g"  /home/cloud/config/client_cidr_gw.tmp
-  #          sed -i -e "s/\//:/g"  /home/cloud/config/client_cidr_gw_df.tmp
-  #          sed -i -e "s/0:24/100/g" /home/cloud/config/client_cidr_gw.tmp
-  #          sed -i -e "s/0:24/1/g"  /home/cloud/config/client_cidr_gw_df.tmp
-  #          git clone  https://github.com/mickaelremilien/CLOUDPATT.git
-  #          sudo ansible-playbook /home/cloud/CLOUDPATT/image-factory/bundle-trusty-vpn/ansible/bootstrap2lanclient.yml
-  #        params:
-  #          $server_cidr$: {get_param: server_cidr}
-  #          $client_cidr$: {get_param: client_cidr}
 
   server:
     type: OS::Nova::Server
@@ -283,9 +208,7 @@ resources:
             echo -n "$server_cidr$" >> /home/cloud/config/server_cidr
             echo -n "$client_cidr$" >> /home/cloud/config/client_cidr
             sed 's/\(.*\)\/.*/\1/' < /home/cloud/config/server_cidr > /home/cloud/config/server_cidr.tmp
-            #mv /home/cloud/config/server_cidr.tmp /home/cloud/config/server_cidr
             sed 's/\(.*\)\/.*/\1/' < /home/cloud/config/client_cidr > /home/cloud/config/client_cidr.tmp
-            #mv /home/cloud/config/client_cidr.tmp /home/cloud/config/client_cidr
             cp /home/cloud/config/server_cidr /home/cloud/config/server_cidr_gw.tmp
             cp /home/cloud/config/server_cidr /home/cloud/config/server_cidr_gw_df.tmp
             sed -i -e "s/\//:/g"  /home/cloud/config/server_cidr_gw.tmp
@@ -324,7 +247,7 @@ resources:
             $ssh_key_pub$: { get_attr: [ my_key3, public_key ] }
             $client_cidr$: {get_param: client_cidr}
             $server_cidr$: {get_param: server_cidr}
-            #$subnet_server_id$: { get_resource: [subnet,subnet_id] }
+
 
   client:
     type: OS::Nova::Server
@@ -379,13 +302,7 @@ resources:
             $client_cidr$: {get_param: client_cidr}
 outputs:
 
-  #subnet_id_server:
-  #  description: id du subnet server
-  #  value: { get_resource: [subnet,subnet_id] }
 
-  #subnet_id_client:
-  #  description: id du subnet client
-  #  value: { get_resource: [subnet2,subnet_id] }
 
   server_private_ip:
     description: IP address of server on private network
@@ -410,6 +327,10 @@ outputs:
   server_id:
     description: ID of the server
     value: { get_resource: client }
+    
+  security_group__id:
+    description: ID of the security group associate to the server
+    value: {get_resource: security_group}
 
   subnet_server_id:
     description: ID of the private subnet associate to the server
@@ -426,11 +347,3 @@ outputs:
   network_client_id:
     description: ID of the private network associate to the client
     value: {get_resource: network2}
-
-  #private_key:
-  #  description: Private key
-  #  value: { get_attr: [ my_key3, private_key ] }
-#
-#  public_key:
-#    description: Public_key
-#    value: { get_attr: [ my_key3, public_key ] }

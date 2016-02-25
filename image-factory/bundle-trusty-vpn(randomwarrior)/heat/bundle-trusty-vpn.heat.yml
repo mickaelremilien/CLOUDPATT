@@ -85,11 +85,11 @@ parameters:
 
 resources:
 
-  my_key:
+  my_key2:
     type: OS::Nova::KeyPair
     properties:
       save_private_key: true
-      name: my_key
+      name: my_key2
 
   network:
     type: OS::Neutron::Net
@@ -162,7 +162,7 @@ resources:
   serverlanserver:
     type: OS::Nova::Server
     properties:
-      key_name: { get_resource: my_key }
+      key_name: { get_resource: my_key2 }
       image: { get_param: image }
       flavor: { get_param: flavor_name }
       networks:
@@ -207,9 +207,9 @@ resources:
             #!/usr/bin/env bash
             sudo mkdir /etc/vpnconf/
             sudo mkdir /home/cloud/config
-            echo -n "$ip_server$" >> /home/cloud/config/ip_server
             sudo chown -R cloud:cloud /home/cloud/config
-            echo -n "$ssh_key_priv$" >> /home/cloud/.ssh/my_key.pem
+            echo -n "$ip_server$" >> /home/cloud/config/ip_server
+            echo -n "$ssh_key_priv$" >> /home/cloud/.ssh/my_key2.pem
             echo -n "$ssh_key_pub$" >> /home/cloud/.ssh/authorized_keys
             echo -n "$server_cidr$" >> /home/cloud/config/server_cidr
             sed 's/\(.*\)\/.*/\1/' < /home/cloud/config/server_cidr > /home/cloud/config/server_cidr.tmp
@@ -245,8 +245,8 @@ resources:
             $CITY$: { get_param: CITY }
             $ORGANISATION$: { get_param: ORGANISATION }
             $EMAIL$:  { get_param: EMAIL }
-            $ssh_key_priv$: { get_attr: [ my_key, private_key ] }
-            $ssh_key_pub$: { get_attr: [ my_key, public_key ] }
+            $ssh_key_priv$: { get_attr: [ my_key2, private_key ] }
+            $ssh_key_pub$: { get_attr: [ my_key2, public_key ] }
             $server_cidr$: {get_param: server_cidr}
             $ip_server$: { get_attr: [floating_ip, floating_ip_address] }
 
@@ -275,10 +275,10 @@ outputs:
     description: ID of the private network associate to the server
     value: {get_resource: network}
 
-  private_key:
-    description: Private key
-    value: { get_attr: [ my_key, private_key ] }
+  #private_key:
+  #  description: Private key
+  #  value: { get_attr: [ my_key2, private_key ] }
 
-  public_key:
-    description: Public_key
-    value: { get_attr: [ my_key, public_key ] }
+  #public_key:
+  #  description: Public_key
+  #  value: { get_attr: [ my_key2, public_key ] }

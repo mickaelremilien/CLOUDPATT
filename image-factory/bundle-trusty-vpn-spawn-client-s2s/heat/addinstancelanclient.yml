@@ -123,3 +123,12 @@ outputs:
   client_private_ip:
     description: IP address of server1 in private network
     value: { get_attr: [ client, first_address ] }
+
+
+  security_group__id:
+    description: ID of the security group associate to the server
+    value: {get_resource: security_group}
+
+  client_id:
+    description: ID of the instance Client
+    value: {get_resource: client}

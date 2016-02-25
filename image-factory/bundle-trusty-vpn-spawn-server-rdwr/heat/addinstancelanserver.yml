@@ -114,3 +114,11 @@ outputs:
   server_private_ip:
     description: IP address of client in private network
     value: { get_attr: [ server, first_address ] }
+
+  security_group__id:
+    description: ID of the security group associate to the server
+    value: {get_resource: security_group}
+
+  server_id:
+    description: ID of the instance Server
+    value: {get_resource: server}
