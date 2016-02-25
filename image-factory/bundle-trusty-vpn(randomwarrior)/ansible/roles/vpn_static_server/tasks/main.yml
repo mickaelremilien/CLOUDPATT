@@ -287,9 +287,9 @@
     replace='AUTOSTART="all"'
 
 
-- name: change ownership and right my_key.pem
+- name: change ownership and right my_key2.pem
   file:
-    path=/home/cloud/.ssh/my_key.pem
+    path=/home/cloud/.ssh/my_key2.pem
     owner=cloud
     group=cloud
     mode=600
