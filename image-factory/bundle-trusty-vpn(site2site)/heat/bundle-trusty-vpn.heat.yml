@@ -272,9 +272,7 @@ resources:
             cp /home/cloud/config/client_cidr /home/cloud/config/client_cidr_gw.tmp
             cp /home/cloud/config/client_cidr /home/cloud/config/client_cidr_gw_df.tmp
             sed 's/\(.*\)\/.*/\1/' < /home/cloud/config/server_cidr > /home/cloud/config/server_cidr.tmp
-            #mv /home/cloud/config/server_cidr.tmp /home/cloud/config/server_cidr
             sed 's/\(.*\)\/.*/\1/' < /home/cloud/config/client_cidr > /home/cloud/config/client_cidr.tmp
-            #mv /home/cloud/config/client_cidr.tmp /home/cloud/config/client_cidr
             sed -i -e "s/\//:/g"  /home/cloud/config/client_cidr_gw.tmp
             sed -i -e "s/\//:/g"  /home/cloud/config/client_cidr_gw_df.tmp
             sed -i -e "s/0:24/100/g" /home/cloud/config/client_cidr_gw.tmp
@@ -327,7 +325,7 @@ outputs:
   server_id:
     description: ID of the server
     value: { get_resource: client }
-    
+
   security_group__id:
     description: ID of the security group associate to the server
     value: {get_resource: security_group}

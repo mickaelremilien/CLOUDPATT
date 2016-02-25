@@ -314,9 +314,9 @@
     regexp='iroute X.X.X.X 255.255.255.0'
     replace='iroute {{client_cidr}} 255.255.255.0'
 
-- name: change ownership and right my_key.pem
+- name: change ownership and right my_key3.pem
   file:
-    path=/home/cloud/.ssh/my_key.pem
+    path=/home/cloud/.ssh/my_key3.pem
     owner=cloud
     group=cloud
     mode=600
@@ -328,7 +328,6 @@
   shell: |
     scp -oStricthostkeychecking=no -oIdentityFile=/home/cloud/.ssh/my_key3.pem /etc/openvpn/configclient.tar.gz cloud@"{{ip_client}}":/etc/openvpn/
     cd /home/cloud/config
-    #sudo rm client_cidr client_cidr.tmp server_cidr.tmp server_cidr.tmp ip_client
     sudo route del -net {{client_cidr}} netmask 255.255.255.0 gw {{server_cidr_gw_df}}
     sudo route add -net {{client_cidr}} netmask 255.255.255.0 gw {{server_cidr_gw}}
     sudo service openvpn restart
