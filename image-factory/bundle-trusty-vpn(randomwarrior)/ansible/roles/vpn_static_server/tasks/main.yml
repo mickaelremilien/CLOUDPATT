@@ -138,24 +138,6 @@
     group=cloud
     mode=0644
 
-#ccd
-- name: create keys folder ccd
-  file:
-    path=/etc/openvpn/ccd
-    state=directory
-    owner=cloud
-    group=cloud
-    recurse=yes
-
-
-#client1
-- name: configuration ccd
-  copy:
-    src=roles/vpn_static_server/files/client1
-    dest=/etc/openvpn/ccd/client1
-    owner=root
-    group=root
-    mode=0755
 
 #ufw
 - name: before.rules configuration
@@ -264,6 +246,7 @@
     backup=yes
 
 
+
 - name: pack config client
   args:
     chdir: /etc/openvpn/
@@ -272,17 +255,30 @@
     mkdir configclient
     sudo cp /etc/openvpn/easy-rsa/keys/client1.key /etc/openvpn/
     sudo cp /etc/openvpn/easy-rsa/keys/client1.crt /etc/openvpn/
-    mv client1.crt configclient
-    mv client1.key configclient
+    sudo mv client1.crt configclient
+    sudo mv client1.key configclient
     sudo cp ta.key configclient
     sudo cp ca.crt configclient
     mv client.conf configclient
-    rm client.conf
+
+- name: modification configclient
+  replace:
+    dest=/etc/openvpn/configclient/client.conf
+    regexp='X.X.X.X'
+    replace='{{ip_server}}'
+
+- name: pack config client
+  args:
+    chdir: /etc/openvpn/
+    executable: /bin/bash
+  shell: |
     tar czvf configclient.tar.gz configclient
     sudo rm -r configclient
     chown cloud configclient.tar.gz
     chmod 755 configclient.tar.gz
     chgrp cloud configclient.tar.gz
+
+
 
 - name: setting openvpn autostart
   replace:
@@ -290,46 +286,20 @@
     regexp='#AUTOSTART="all"'
     replace='AUTOSTART="all"'
 
-- name: setting server.conf 1
-  replace:
-    dest=/etc/openvpn/server.conf
-    regexp='route X.X.X.X 255.255.255.0'
-    replace='route {{client_cidr}} 255.255.255.0'
 
-- name: setting server.conf 2
-  replace:
-    dest=/etc/openvpn/server.conf
-    regexp='push "X.X.X.X 255.255.255.0"'
-    replace='push "{{server_cidr}} 255.255.255.0"'
-
-- name: setting server.conf 3
-  replace:
-    dest=/etc/openvpn/server.conf
-    regexp='push "X.X.X.X.X 255.255.255.0"'
-    replace='push "{{client_cidr}} 255.255.255.0"'
-
-- name: setting client1
-  replace:
-    dest=/etc/openvpn/ccd/client1
-    regexp='iroute X.X.X.X 255.255.255.0'
-    replace='iroute {{client_cidr}} 255.255.255.0'
-
-- name: change ownership and right my_key3.pem
+- name: change ownership and right my_key.pem
   file:
-    path=/home/cloud/.ssh/my_key3.pem
+    path=/home/cloud/.ssh/my_key.pem
     owner=cloud
     group=cloud
     mode=600
 
-- name: copy config client
+
+- name: starting openvpn
   args:
     chdir: /etc/openvpn/
     executable: /bin/bash
   shell: |
-    scp -oStricthostkeychecking=no -oIdentityFile=/home/cloud/.ssh/my_key3.pem /etc/openvpn/configclient.tar.gz cloud@"{{ip_client}}":/etc/openvpn/
-    cd /home/cloud/config
-    sudo route del -net {{client_cidr}} netmask 255.255.255.0 gw {{server_cidr_gw_df}}
-    #sudo route add -net {{client_cidr}} netmask 255.255.255.0 gw {{server_cidr_gw}}
     sudo service openvpn restart
 
 - name: cleaning
@@ -337,7 +307,5 @@
     chdir: /home/cloud
     executable: /bin/bash
   shell: |
-    sudo sleep 30
-    sudo route add -net {{client_cidr}}/24 dev tun0
     sudo rm -r CLOUDPATT
-    #sudo rm -r config
+    sudo rm -r config

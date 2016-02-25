@@ -91,8 +91,8 @@ resources:
             sed -i -e "s/\//:/g"  /home/cloud/config/client_cidr_gw_df.tmp
             sed -i -e "s/0:24/100/g" /home/cloud/config/client_cidr_gw.tmp
             sed -i -e "s/0:24/1/g"  /home/cloud/config/client_cidr_gw_df.tmp
-            sudo route add -net "$server_cidr$"/24 gw $(cat /home/cloud/config/client_cidr_gw_df.tmp)
-            sudo route add -net "$server_cidr$"/24 gw $(cat /home/cloud/config/client_cidr_gw.tmp)
+            sudo route del -net "$server_cidr$" gw $(cat /home/cloud/config/client_cidr_gw_df.tmp)
+            sudo route add -net "$server_cidr$" gw $(cat /home/cloud/config/client_cidr_gw.tmp)
           params:
             $client_cidr$: {get_param: client_cidr}
             $server_cidr$: {get_param: server_cidr}
@@ -125,7 +125,7 @@ outputs:
     value: { get_attr: [ client, first_address ] }
 
 
-  security_group__id:
+  security_group_id:
     description: ID of the security group associate to the server
     value: {get_resource: security_group}
 

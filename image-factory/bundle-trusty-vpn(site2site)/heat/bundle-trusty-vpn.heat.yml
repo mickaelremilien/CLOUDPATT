@@ -326,7 +326,7 @@ outputs:
     description: ID of the server
     value: { get_resource: client }
 
-  security_group__id:
+  security_group_id:
     description: ID of the security group associate to the server
     value: {get_resource: security_group}
 

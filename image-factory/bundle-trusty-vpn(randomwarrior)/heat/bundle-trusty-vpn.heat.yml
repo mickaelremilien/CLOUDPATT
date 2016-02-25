@@ -140,38 +140,6 @@ resources:
       fixed_ips:
         - ip_address: { "Fn::Replace": [ {'.0/24': '.100'}, {get_param: server_cidr} ] }
 
-
-  serverlanserver:
-    type: OS::Nova::Server
-    properties:
-      key_name: { get_resource: my_key }
-      image: { get_param: image }
-      flavor: { get_param: flavor_name }
-      networks:
-        - network: {get_resource: network}
-      security_groups:
-        - { get_resource: security_group }
-      user_data_format: RAW
-      user_data:
-        str_replace:
-          template: |
-            #!/usr/bin/env bash
-            sudo mkdir /home/cloud/config
-            sudo chown -R cloud:cloud /home/cloud/config
-            echo -n "$server_cidr$" >> /home/cloud/config/server_cidr
-            sed 's/\(.*\)\/.*/\1/' < /home/cloud/config/server_cidr > /home/cloud/config/server_cidr.tmp
-            cp /home/cloud/config/server_cidr /home/cloud/config/server_cidr_gw.tmp
-            cp /home/cloud/config/server_cidr /home/cloud/config/server_cidr_gw_df.tmp
-            sed -i -e "s/\//:/g"  /home/cloud/config/server_cidr_gw.tmp
-            sed -i -e "s/\//:/g"  /home/cloud/config/server_cidr_gw_df.tmp
-            sed -i -e "s/0:24/100/g" /home/cloud/config/server_cidr_gw.tmp
-            sed -i -e "s/0:24/1/g"  /home/cloud/config/server_cidr_gw_df.tmp
-            git clone  https://github.com/mickaelremilien/CLOUDPATT.git
-            sudo ansible-playbook /home/cloud/CLOUDPATT/image-factory/bundle-trusty-vpn\(randomwarrior\)/ansible/bootstrap2lanserver.yml
-          params:
-            $server_cidr$: {get_param: server_cidr}
-
-
   server:
     type: OS::Nova::Server
     properties:
@@ -247,7 +215,7 @@ outputs:
     description: ID of the server
     value: {get_resource: server}
 
-  security_group__id:
+  security_group_id:
     description: ID of the security group associate to the server
     value: {get_resource: security_group}
 
