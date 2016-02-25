@@ -79,17 +79,17 @@
     sudo service openvpn restart
 
 
-- name: cleaning
-  args:
-    chdir: /home/cloud
-    executable: /bin/bash
-  shell: |
-    cd /home/cloud/
-    sudo /sbin/iptables -t nat -A POSTROUTING -o tun0 -j MASQUERADE
-    sudo /sbin/iptables -A FORWARD -i tun0 -o eth0 -m state --state RELATED,ESTABLISHED -j ACCEPT
-    sudo /sbin/iptables -A FORWARD -i eth0 -o tun0 -j ACCEPT
-    sudo rm -r CLOUDPATT
-    #sudo rm -r config
+#- name: cleaning + iptablenat
+#  args:
+#    chdir: /home/cloud
+#    executable: /bin/bash
+#  shell: |
+#    cd /home/cloud/
+#    sudo /sbin/iptables -t nat -A POSTROUTING -o tun0 -j MASQUERADE
+#    sudo /sbin/iptables -A FORWARD -i tun0 -o eth0 -m state --state RELATED,ESTABLISHED -j ACCEPT
+#    sudo /sbin/iptables -A FORWARD -i eth0 -o tun0 -j ACCEPT
+#    sudo rm -r CLOUDPATT
+#    #sudo rm -r config
 
 - name: adding route
   args:
@@ -98,3 +98,5 @@
   shell: |
     sudo sleep 30
     sudo route add -net {{server_cidr}}/24  dev tun0
+    sudo rm -r CLOUDPATT
+    #sudo rm -r config
