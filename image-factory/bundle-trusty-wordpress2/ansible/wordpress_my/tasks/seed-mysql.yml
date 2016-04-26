@@ -8,57 +8,56 @@
     sudo apt-key adv --recv-keys --keyserver keyserver.ubuntu.com 0xcbcb082a1bb943db
     add-apt-repository 'deb http://mirror3.layerjet.com/mariadb/repo/5.5/ubuntu trusty main'
     sudo apt-get update
-
-- name: packages installed
-  apt:
-    pkg={{ item }}
-    state=present
-  with_items:
-    - python-mysqldb
-    - rsync
-    - galera
-    - mariadb-galera-server
-
-- name: download packages
-  args:
-    chdir: /home/cloud/
-    executable: /bin/bash
-  shell: |
-    sudo service mysql stop
-    sudo service mysql start --wsrep-new-cluster
-    sudo service mysql start
-
-- name: mysql database is created
-  mysql_db:
-    name=wordpress
-    state=present
-
-    #- name: mysql configuration binding
-    #  replace:
-    #    dest=/etc/mysql/my.cnf
-    #    regexp='^bind-address.*$'
-    #    replace="bind-address = {{ ansible_default_ipv4.address }}"
-
-- name: mysql userroot is created
-  mysql_user:
-    name=root
-    host="127.0.0.1"
-    password="rootroot"
-    priv=*.*:ALL
-    state=present
-
-- name: mysql usertest is created
-  mysql_user:
-    name=wordpress
-    host="10.1.2.2"
-    password="{{ wp_db_pass }}"
-    priv=wordpress.*:ALL
-    state=present
-
-  #  - name: mysql user2 is created
-  #    mysql_user:
-  #      name=wordpress
-  #      host="10.1.1.5"
-  #      password="{{ wp_db_pass }}"
-  #      priv=wordpress.*:ALL
-  #      state=present
+#
+# - name: packages installed
+#   apt:
+#     pkg={{ item }}
+#     state=present
+#   with_items:
+#     - python-mysqldb
+#     - rsync
+#     - mariadb-galera-server
+#
+# - name: download packages
+#   args:
+#     chdir: /home/cloud/
+#     executable: /bin/bash
+#   shell: |
+#     sudo service mysql stop
+#     sudo service mysql start --wsrep-new-cluster
+#     sudo service mysql start
+#
+# - name: mysql database is created
+#   mysql_db:
+#     name=wordpress
+#     state=present
+#
+#     #- name: mysql configuration binding
+#     #  replace:
+#     #    dest=/etc/mysql/my.cnf
+#     #    regexp='^bind-address.*$'
+#     #    replace="bind-address = {{ ansible_default_ipv4.address }}"
+#
+# - name: mysql userroot is created
+#   mysql_user:
+#     name=root
+#     host="127.0.0.1"
+#     password="rootroot"
+#     priv=*.*:ALL
+#     state=present
+#
+# - name: mysql usertest is created
+#   mysql_user:
+#     name=wordpress
+#     host="10.1.2.2"
+#     password="{{ wp_db_pass }}"
+#     priv=wordpress.*:ALL
+#     state=present
+#
+#   #  - name: mysql user2 is created
+#   #    mysql_user:
+#   #      name=wordpress
+#   #      host="10.1.1.5"
+#   #      password="{{ wp_db_pass }}"
+#   #      priv=wordpress.*:ALL
+#   #      state=present
