@@ -4,14 +4,13 @@
       #chdir: /etc/openvpn/
       executable: /bin/bash
     shell: |
-      sudo -i
-      apt-get install apache2 libapache2-mod-wsgi graphite-web graphite-carbon -y
-      echo "deb https://packagecloud.io/grafana/stable/debian/ wheezy maindeb https://packagecloud.io/grafana/stable/debian/ wheezy main" >>  /etc/apt/sources.list
-      apt-get install apt-transport-https -y
-      curl https://packagecloud.io/gpg.key | apt-key add -
-      apt-get update -y
-      apt-get install grafana -y
-      apt-get install collectd collectd-utils -y
+      sudo apt-get install apache2 libapache2-mod-wsgi graphite-web graphite-carbon -y
+      sudo echo "deb https://packagecloud.io/grafana/stable/debian/ wheezy maindeb https://packagecloud.io/grafana/stable/debian/ wheezy main" >>  /etc/apt/sources.list
+      sudo apt-get install apt-transport-https -y
+      sudo curl https://packagecloud.io/gpg.key | apt-key add -
+      sudo apt-get update -y
+      sudo apt-get install grafana -y
+      sudo apt-get install collectd collectd-utils -y
 
   - name: configuration Apache pour graphite
     args:
@@ -73,4 +72,4 @@
       service apache2 restart
       service grafana-server restart
       service collecd restart
-      update-rc.d grafana-server defaults 95 10
+      #update-rc.d grafana-server defaults 95 10
