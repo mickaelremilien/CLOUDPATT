@@ -1,8 +1,4 @@
 ---
-- hosts: local
-  user: cloud
-  become: yes
-
   - name: download packages
     args:
       #chdir: /etc/openvpn/
