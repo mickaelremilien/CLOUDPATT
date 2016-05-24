@@ -29,13 +29,13 @@
     regexp='#CARBON_CACHE_ENABLED = false'
     replace='CARBON_CACHE_ENABLED = true'
 
-- name: setting enable carbon-cahe
+- name: setting enable carbon-cache2
   replace:
     dest= /etc/carbon/carbon.conf
     regexp='#ENABLE_LOGROTATION = false'
     replace='ENABLE_LOGROTATION = true'
 
-- name: setting enable carbon-cahe2
+- name: setting enable carbon-cache3
   replace:
     dest= /etc/carbon/carbon.conf
     regexp='#MAX_CREATES_PER_MINUTE = 50'
