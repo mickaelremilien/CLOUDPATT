@@ -1,7 +1,4 @@
 ---
-- hosts: local
-  user: cloud
-  become: yes
 
 - name: download packages
   args:
@@ -62,7 +59,7 @@
 - name: setting  graphite-local2
   replace:
     dest= /etc/graphite/local_settings.py
-    regexp='#TIME_ZONE = America/Los_Angeles'
+    regexp='#TIME_ZONE = America/Los_Angelesb'
     replace='TIME_ZONE = Europe/Paris'
 
 - name: demarrage services
