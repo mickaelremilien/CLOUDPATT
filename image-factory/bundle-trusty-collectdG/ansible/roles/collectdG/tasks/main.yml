@@ -26,19 +26,19 @@
 
   #- name: setting enable carbon-cache
   - lineinfile:
-      dest= /etc/default/graphite-carbon
+      dest=/etc/default/graphite-carbon
       regexp='#CARBON_CACHE_ENABLED = false'
       line='CARBON_CACHE_ENABLED = true'
 
   #- name: setting enable carbon-cache2
   - lineinfile:
-      dest= /etc/carbon/carbon.conf
+      dest=/etc/carbon/carbon.conf
       regexp='#ENABLE_LOGROTATION = false'
       line='ENABLE_LOGROTATION = true'
 
   #- name: setting enable carbon-cache3
   - lineinfile:
-      dest= /etc/carbon/carbon.conf
+      dest=/etc/carbon/carbon.conf
       regexp='#MAX_CREATES_PER_MINUTE = 50'
       line='MAX_CREATES_PER_MINUTE = 600'
 
@@ -52,13 +52,13 @@
 
   #- name: setting  graphite-local
   - lineinfile:
-      dest= /etc/graphite/local_settings.py
+      dest=/etc/graphite/local_settings.py
       regexp='#SECRET_KEY = UNSAFE_DEFAULT'
       line='SECRET_KEY = jkfdjlskfjdslkjopelezkmlezakmlza5654trlkre'
 
   #- name: setting  graphite-local2
   - lineinfile:
-      dest= /etc/graphite/local_settings.py
+      dest=/etc/graphite/local_settings.py
       regexp='#TIME_ZONE = America/Los_Angelesb'
       line='TIME_ZONE = Europe/Paris'
 
