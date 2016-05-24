@@ -25,22 +25,22 @@
     a2ensite apache2-graphite
 
 - name: setting enable carbon-cache
-  replace:
+  lineinfile:
     dest= /etc/default/graphite-carbon
     regexp='#CARBON_CACHE_ENABLED = false'
-    replace='CARBON_CACHE_ENABLED = true'
+    line='CARBON_CACHE_ENABLED = true'
 
 - name: setting enable carbon-cache2
-  replace:
+  lineinfile:
     dest= /etc/carbon/carbon.conf
     regexp='#ENABLE_LOGROTATION = false'
-    replace='ENABLE_LOGROTATION = true'
+    line='ENABLE_LOGROTATION = true'
 
 - name: setting enable carbon-cache3
-  replace:
+  lineinfile:
     dest= /etc/carbon/carbon.conf
     regexp='#MAX_CREATES_PER_MINUTE = 50'
-    replace='MAX_CREATES_PER_MINUTE = 600'
+    line='MAX_CREATES_PER_MINUTE = 600'
 
 - name:   configuration graphite-carbon
   args:
@@ -51,16 +51,16 @@
     cp /usr/share/doc/graphite-carbon/examples/storage-aggregation.conf.example /etc/carbon/storage-aggregation.conf
 
 - name: setting  graphite-local
-  replace:
+  lineinfile:
     dest= /etc/graphite/local_settings.py
     regexp='#SECRET_KEY = UNSAFE_DEFAULT'
-    replace='SECRET_KEY = jkfdjlskfjdslkjopelezkmlezakmlza5654trlkre'
+    line='SECRET_KEY = jkfdjlskfjdslkjopelezkmlezakmlza5654trlkre'
 
 - name: setting  graphite-local2
-  replace:
+  lineinfile:
     dest= /etc/graphite/local_settings.py
     regexp='#TIME_ZONE = America/Los_Angelesb'
-    replace='TIME_ZONE = Europe/Paris'
+    line='TIME_ZONE = Europe/Paris'
 
 - name: demarrage services
   args:
