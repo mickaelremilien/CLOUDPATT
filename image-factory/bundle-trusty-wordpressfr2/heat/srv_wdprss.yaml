@@ -1,0 +1,96 @@
+heat_template_version: 2013-05-23
+
+parameters:
+  lb_pool:
+    type: string
+    description: The LB pool in which the instance should be added
+
+  sql_lb_pool:
+    type: string
+    description: The LB pool of the mysql cluster
+
+  lb_port:
+    type: number
+    description: Port in the LB pool
+
+  image:
+    type: string
+    description: Glance Image
+    default: "Ubuntu 14.04"
+
+  flavor:
+    type: string
+    description: Flavor
+    default: t1.cw.tiny
+
+  key_name:
+    type: string
+    description: SSH key
+    default: mickaelfr2
+
+  network_id:
+    type: string
+    description: Network ID
+
+  security_groups:
+    type: comma_delimited_list
+
+  themysqlpwd:
+    description: Basic auth password for mysql users
+    label: Mysql Auth password
+    type: string
+    hidden: true
+    constraints:
+      - length: { min: 6, max: 24 }
+        description: Password must be between 6 and 24 characters
+
+resources:
+  pool_member:
+    depends_on: [instance]
+    type: OS::Neutron::PoolMember
+    properties:
+      pool_id: {get_param: lb_pool}
+      address: {get_attr: [instance, first_address]}
+      protocol_port: {get_param: lb_port}
+
+  instance:
+    type: OS::Nova::Server
+    properties:
+      flavor: {get_param: flavor}
+      image: {get_param: image}
+      key_name: {get_param: key_name}
+      networks:
+        - network: {get_param: network_id}
+      security_groups: {get_param: security_groups}
+      user_data_format: RAW
+      user_data:
+        str_replace:
+          template: |
+            #!/usr/bin/env bash
+            echo "$(date) - START" >> /var/log/web_srv.log
+            export DEBIAN_FRONTEND=noninteractive
+            apt-get update 2>&1 >> /var/log/web_srv.log
+            echo "$(date) - update done" >> /var/log/web_srv.log
+            apt-get -o Dpkg::Options::="--force-confold" upgrade -y 2>&1 >> /var/log/web_srv.log
+            echo "$(date) - upgrade done" >> /var/log/web_srv.log
+            apt-get -o Dpkg::Options::="--force-confold" install apache2 -y 2>&1 >> /var/log/web_srv.log
+            echo "$(date) - apache2 done" >> /var/log/web_srv.log
+            mkdir /etc/ansible
+            echo "[local]" >> /etc/ansible/hosts
+            echo "127.0.0.1 ansible_connection=local" >> /etc/ansible/hosts
+            cd /home/cloud/
+            git clone  https://github.com/mickaelremilien/CLOUDPATT.git
+            sudo ansible-playbook /home/cloud/CLOUDPATT/image-factory/bundle-trusty-wordpress2/ansible/seed-wdprss.yml
+            echo  "$mysqlpwd$" >> /home/cloud/mysqlpwd
+            echo "$sql_ip$" >> /var/log/sql_vip
+          params:
+            $sql_ip$: { get_param: [sql_lb_pool, vip, address]}
+            $mysqlpwd$: { get_param: themysqlpwd }
+outputs:
+  first_address:
+    description: IP address of the first interface
+    value: {get_attr:  [instance, first_address]}
+
+  instance_id:
+    description: ID of the instance
+    value: {get_resource: instance}

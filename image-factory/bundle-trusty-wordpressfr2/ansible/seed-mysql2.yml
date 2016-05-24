@@ -1,0 +1,37 @@
+- hosts: local
+  user: cloud
+  sudo: true
+
+  vars:
+   wp_db_pass: "{{ lookup('file', '/home/cloud/mysqlpwd') }}"
+
+  tasks:
+    - name: packages installed
+      apt:
+        pkg={{ item }}
+        state=present
+      with_items:
+        - mysql-server
+        - python-mysqldb
+        - mysql-client
+
+    - name: pack config client
+      args:
+        chdir: /home/cloud/
+        executable: /bin/bash
+      shell: |
+        wget https://launchpad.net/galera/3.x/25.3.5/+download/galera-25.3.5-amd64.deb
+        wget https://launchpad.net/codership-mysql/5.6/5.6.16-25.5/+download/mysql-server-wsrep-5.6.16-25.5-amd64.deb
+        sudo apt-get install libssl0.9.8
+        sudo dpkg -i galera-25.3.5-amd64.deb
+        sudo dpkg --force-all -i mysql-server-wsrep-5.6.16-25.5-amd64.deb
+        sudo dpkg -i mysql-server-wsrep-5.6.16-25.5-amd64.deb
+      sudo: yes
+
+
+    - name: mysql started
+      service: name=mysql state=restarted enabled=yes
+
+  handlers:
+    - name: restart mysql
+      service: name=mysql state=restarted enabled=yes

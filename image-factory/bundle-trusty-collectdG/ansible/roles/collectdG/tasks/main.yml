@@ -1,0 +1,76 @@
+---
+- name: download packages
+  args:
+    #chdir: /etc/openvpn/
+    executable: /bin/bash
+  shell: |
+    sudo -i
+    apt-get install apache2 libapache2-mod-wsgi graphite-web graphite-carbon -y
+    echo "deb https://packagecloud.io/grafana/stable/debian/ wheezy maindeb https://packagecloud.io/grafana/stable/debian/ wheezy main" >>  /etc/apt/sources.list
+    apt-get install apt-transport-https -y
+    curl https://packagecloud.io/gpg.key | apt-key add -
+    apt-get update -y
+    apt-get install grafana -y
+    apt-get install collectd collectd-utils -y
+
+- name: configuration Apache pour graphite
+  args:
+    #chdir: /etc/openvpn/
+    executable: /bin/bash
+  shell: |
+    sudo -i
+    a2dissite 000-default
+    cp /usr/share/graphite-web/apache2-graphite.conf /etc/apache2/sites-available
+    a2ensite apache2-graphite
+
+- name: setting enable carbon-cahe
+  replace:
+    dest= /etc/default/graphite-carbon
+    regexp='#CARBON_CACHE_ENABLED = false'
+    replace='CARBON_CACHE_ENABLED = true'
+
+- name: setting enable carbon-cahe
+  replace:
+    dest= /etc/carbon/carbon.conf
+    regexp='#ENABLE_LOGROTATION = false'
+    replace='ENABLE_LOGROTATION = true'
+
+- name: setting enable carbon-cahe2
+  replace:
+    dest= /etc/carbon/carbon.conf
+    regexp='#MAX_CREATES_PER_MINUTE = 50'
+    replace='MAX_CREATES_PER_MINUTE = 600'
+
+- name:   configuration graphite-carbon
+  args:
+    #chdir: /etc/openvpn/
+    executable: /bin/bash
+  shell: |
+    sudo -i
+    cp /usr/share/doc/graphite-carbon/examples/storage-aggregation.conf.example /etc/carbon/storage-aggregation.conf
+
+- name: setting  graphite-local
+  replace:
+    dest= /etc/graphite/local_settings.py
+    regexp='#SECRET_KEY = \'UNSAFE_DEFAULT\''
+    replace='SECRET_KEY = \'jkfdjlskfjdslkjopelezkmlezakmlza5654trlkre\''
+
+- name: setting  graphite-local2
+  replace:
+    dest= /etc/graphite/local_settings.py
+    regexp='#TIME_ZONE = \'America/Los_Angeles\''
+    replace='TIME_ZONE = \'Europe/Paris\''
+
+- name: demarrage services
+  args:
+    #chdir: /etc/openvpn/
+    executable: /bin/bash
+  shell: |
+    sudo -i
+    graphite-manage syncdb --noinput
+    chown _graphite:_graphite /var/lib/graphite/graphite.db
+    service carbon-cache restart
+    service apache2 restart
+    service grafana-server restart
+    service collecd restart
+    update-rc.d grafana-server defaults 95 10

@@ -1,0 +1,9 @@
+---
+- name: restart
+  service: name=carbon-cache  state=restarted
+- name: restart
+  service: name=apache2 state=restarted
+- name: restart
+  service: name=grafana-server state=restarted
+- name: restart
+  service: name=collecd state=restarted

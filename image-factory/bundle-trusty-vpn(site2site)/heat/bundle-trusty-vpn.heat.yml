@@ -10,10 +10,11 @@ parameters:
   server_cidr:
     description: /24 cidr of local subnet
     type: string
-
+    default:  10.10.10.0/24
   client_cidr:
     description: /24 cidr of target subnet (other end of the tunnel)
     type: string
+    default: 20.10.10.0/24
 
   COUNTRY:
     description: COUNTRY for the VPN certificate
@@ -23,6 +24,7 @@ parameters:
     constraints:
       - length: { min: 1, max: 2 }
         description: COUNTRY must be between 1 and 2 characters
+    default: FR
 
   PROVINCE:
     description: PROVINCE for the VPN certificate
@@ -32,6 +34,7 @@ parameters:
     constraints:
       - length: { min: 1, max: 40 }
         description: PROVINCE must be between 1 and 40 characters
+    default: IDF
 
   CITY:
     description: CITY for the VPN certificate
@@ -41,6 +44,7 @@ parameters:
     constraints:
       - length: { min: 1, max: 40 }
         description: CITY must be between 1 and 40 characters
+    default: Paris
 
   ORGANISATION:
     description: ORGANISATION for the VPN certificate
@@ -50,6 +54,7 @@ parameters:
     constraints:
       - length: { min: 1, max: 40 }
         description: ORGANISATION must be between 1 and 40 characters
+    default: CLOUDWATT
 
   EMAIL:
     description: EMAIL for the VPN certificate
@@ -59,7 +64,7 @@ parameters:
     constraints:
       - length: { min: 1, max: 40 }
         description:  EMAIL must be between 1 and 40 characters
-
+    default: contact@cloudwatt.com
 
   image:
     type: string
@@ -70,7 +75,7 @@ parameters:
     description: Keypair to inject in instance
     label: SSH Keypair
     type: string
-    default: mickael
+    default: mickaelfr2
 
   flavor_name:
     default: n2.cw.standard-1
@@ -79,8 +84,6 @@ parameters:
     label: Instance Type (Flavor)
     constraints:
       - allowed_values:
-        - t1.cw.tiny
-        - s1.cw.small-1
         - n2.cw.standard-1
         - n2.cw.standard-2
         - n2.cw.standard-4
@@ -150,13 +153,13 @@ resources:
   floating_ip:
     type: OS::Neutron::FloatingIP
     properties:
-      floating_network_id: 6ea98324-0f14-49f6-97c0-885d1b8dc517
+      floating_network_id: b5dd7532-1533-4b9c-8bf9-e66631a9be1d
       port_id: { get_resource: server_port }
 
   floating_ip2:
     type: OS::Neutron::FloatingIP
     properties:
-      floating_network_id: 6ea98324-0f14-49f6-97c0-885d1b8dc517
+      floating_network_id: b5dd7532-1533-4b9c-8bf9-e66631a9be1d
       port_id: { get_resource: client_port }
 
   floating_ip_link:
@@ -315,11 +318,11 @@ outputs:
     description: IP address of server on private network
     value: { get_attr: [ client, first_address ] }
 
-  floating_ip:
+  floating_ip_server:
     description: IP address of the deployed compute server
     value: { get_attr: [floating_ip, floating_ip_address] }
 
-  floating_ip2:
+  floating_ip_client:
     description: IP address of the deployed compute client
     value: { get_attr: [floating_ip2, floating_ip_address] }
 
@@ -327,7 +330,7 @@ outputs:
     description: ID of the server
     value: {get_resource: server}
 
-  server_id:
+  client_id:
     description: ID of the server
     value: { get_resource: client }
 

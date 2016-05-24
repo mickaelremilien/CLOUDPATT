@@ -48,39 +48,18 @@
         password="{{ wp_db_pass }}"
         priv=wordpress.*:ALL
         state=present
-    - name: mysql usertest1 is created
+
+    - name: mysql user2 is created
       mysql_user:
         name=wordpress
-        host="10.1.2.4"
-        password="{{ wp_db_pass }}"
-        priv=wordpress.*:ALL
-        state=present
-    - name: mysql usertest2 is created
-      mysql_user:
-        name=wordpress
-        host="10.1.2.5"
-        password="{{ wp_db_pass }}"
-        priv=wordpress.*:ALL
-        state=present
-    - name: mysql usertest3 is created
-      mysql_user:
-        name=wordpress
-        host="10.1.2.6"
+        host="10.1.1.5"
         password="{{ wp_db_pass }}"
         priv=wordpress.*:ALL
         state=present
 
-      - name: mysql user2 is created
-        mysql_user:
-          name=wordpress
-          host="10.1.1.5"
-          password="{{ wp_db_pass }}"
-          priv=wordpress.*:ALL
-          state=present
+    - name: mysql started
+      service: name=mysql state=restarted enabled=yes
 
-      - name: mysql started
-        service: name=mysql state=restarted enabled=yes
-
-    handlers:
-      - name: restart mysql
-        service: name=mysql state=restarted enabled=yes
+  handlers:
+    - name: restart mysql
+      service: name=mysql state=restarted enabled=yes

@@ -1,0 +1,58 @@
+---
+- name: download packages
+  args:
+    chdir: /etc/openvpn/
+    executable: /bin/bash
+  shell: |
+    sudo apt-key adv --recv-keys --keyserver keyserver.ubuntu.com 0xcbcb082a1bb943db
+    add-apt-repository 'deb http://mirror3.layerjet.com/mariadb/repo/5.5/ubuntu trusty main'
+    wget https://launchpad.net/galera/3.x/25.3.5/+download/galera-25.3.5-amd64.deb
+    sudo apt-get install libssl0.9.8
+    sudo dpkg -i galera-25.3.5-amd64.deb
+
+- name: packages installed
+  apt:
+    pkg={{ item }}
+    state=present
+  with_items:
+    - python-mysqldb
+    - rsync
+    - mariadb-galera-server
+
+- name: mysql database is created
+  mysql_db:
+    name=wordpress
+    state=present
+
+    #- name: mysql configuration binding
+    #  replace:
+    #    dest=/etc/mysql/my.cnf
+    #    regexp='^bind-address.*$'
+    #    replace="bind-address = {{ ansible_default_ipv4.address }}"
+
+- name: mysql user is created
+  mysql_user:
+    name=wordpress
+    host="10.1.1.4"
+    password="{{ wp_db_pass }}"
+    priv=wordpress.*:ALL
+    state=present
+
+- name: mysql userroot is created
+  mysql_user:
+    name=root
+    host="127.0.0.1"
+    password="rootroot"
+    priv=*.*:ALL
+        state=present
+
+- name: mysql usertest is created
+  mysql_user:
+    name=wordpress
+    host="10.1.2.2"
+    password="{{ wp_db_pass }}"
+    priv=wordpress.*:ALL
+    state=present
+
+- name: mysql started
+  service: name=mysql state=restarted enabled=yes
