@@ -53,13 +53,13 @@
   #- name: setting  graphite-local
   - lineinfile:
       dest=/etc/graphite/local_settings.py
-      regexp='#SECRET_KEY = UNSAFE_DEFAULT'
-      line='SECRET_KEY = jkfdjlskfjdslkjopelezkmlezakmlza5654trlkre'
+      regexp='#SECRET_KEY = \'UNSAFE_DEFAULT\''
+      line='SECRET_KEY = \'jkfdjlskfjdslkjopelezkmlezakmlza5654trlkre\''
 
   #- name: setting  graphite-local2
   - lineinfile:
       dest=/etc/graphite/local_settings.py
-      regexp='#TIME_ZONE = America/Los_Angelesb'
+      regexp='#TIME_ZONE = America/Los_Angeles'
       line='TIME_ZONE = Europe/Paris'
 
   - name: demarrage services
