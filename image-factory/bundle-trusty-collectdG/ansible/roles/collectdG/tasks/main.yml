@@ -1,4 +1,8 @@
 ---
+- hosts: local
+  user: cloud
+  become: yes
+
 - name: download packages
   args:
     #chdir: /etc/openvpn/
@@ -23,7 +27,7 @@
     cp /usr/share/graphite-web/apache2-graphite.conf /etc/apache2/sites-available
     a2ensite apache2-graphite
 
-- name: setting enable carbon-cahe
+- name: setting enable carbon-cache
   replace:
     dest= /etc/default/graphite-carbon
     regexp='#CARBON_CACHE_ENABLED = false'
@@ -52,14 +56,14 @@
 - name: setting  graphite-local
   replace:
     dest= /etc/graphite/local_settings.py
-    regexp='#SECRET_KEY = \'UNSAFE_DEFAULT\''
-    replace='SECRET_KEY = \'jkfdjlskfjdslkjopelezkmlezakmlza5654trlkre\''
+    regexp='#SECRET_KEY = UNSAFE_DEFAULT'
+    replace='SECRET_KEY = jkfdjlskfjdslkjopelezkmlezakmlza5654trlkre'
 
 - name: setting  graphite-local2
   replace:
     dest= /etc/graphite/local_settings.py
-    regexp='#TIME_ZONE = \'America/Los_Angeles\''
-    replace='TIME_ZONE = \'Europe/Paris\''
+    regexp='#TIME_ZONE = America/Los_Angeles'
+    replace='TIME_ZONE = Europe/Paris'
 
 - name: demarrage services
   args:
