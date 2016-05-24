@@ -5,6 +5,12 @@ description: >
 
 parameters:
 
+  key_name:
+    description: Keypair to inject in instance
+    label: SSH Keypair
+    type: string
+    default: mickael
+
   image:
     type: string
     description: Glance Image
@@ -30,22 +36,51 @@ parameters:
         - n2.cw.highmem-8
         - n2.cw.highmem-12
 
-  public_net_id:
-    type: string
-    description: ID of public network for which floating IP addresses will be allocated
-    floating_network_id: b5dd7532-1533-4b9c-8bf9-e66631a9be1d
+
+
     #default: 6ea98324-0f14-49f6-97c0-885d1b8dc517
 
-  private_net_id:
-    type: string
-    description: ID of private network into which servers get deployed
-    default:
-
-  private_subnet_id:
-    type: string
-    description: ID of private sub network into which servers get deployed
 
 resources:
+
+  network:
+    type: OS::Neutron::Net
+
+  floating_ip:
+    type: OS::Neutron::FloatingIP
+    properties:
+      #floating_network_id: b5dd7532-1533-4b9c-8bf9-e66631a9be1d
+      floating_network_id: 6ea98324-0f14-49f6-97c0-885d1b8dc517
+      port_id: { get_resource: server_port }
+
+  floating_ip_link:
+    type: OS::Nova::FloatingIPAssociation
+    properties:
+      floating_ip: { get_resource: floating_ip }
+      server_id: { get_resource: server }
+
+  security_group:
+    type: OS::Neutron::SecurityGroup
+    properties:
+      rules:
+        #- { direction: ingress, protocol: TCP, port_range_min: 22, port_range_max: 22 }
+        #- { direction: ingress, protocol: TCP, port_range_min: 80, port_range_max: 80 }
+        #- { direction: ingress, protocol: TCP, port_range_min: 443, port_range_max: 443 }
+        - { direction: ingress, protocol: TCP, port_range_min: 0, port_range_max: 65535 }
+        - { direction: ingress, protocol: UDP, port_range_min: 0, port_range_max: 65535 }
+        #- { direction: ingress, protocol: ICMP }
+        #- { direction: egress, protocol: ICMP }
+        #- { direction: egress, protocol: TCP }
+        #- { direction: egress, protocol: UDP }
+
+  subnet:
+    type: OS::Neutron::Subnet
+    properties:
+      network_id: { get_resource: network }
+      ip_version: 4
+      cidr: 10.0.1.0/24
+      allocation_pools:
+        - { start: 10.0.1.10, end: 10.0.1.199 }
 
   server:
     type: OS::Nova::Server
@@ -75,24 +110,11 @@ resources:
   server_port:
     type: OS::Neutron::Port
     properties:
-      network_id: { get_param: private_net_id }
+      network_id: { get_resource: network }
       fixed_ips:
-        - subnet_id: { get_param: private_subnet_id }
+        - subnet_id: { get_resource: subnet }
       security_groups: [{ get_resource: security_group }]
 
-  security_group:
-    type: OS::Neutron::SecurityGroup
-    properties:
-      rules:
-        #- { direction: ingress, protocol: TCP, port_range_min: 22, port_range_max: 22 }
-        #- { direction: ingress, protocol: TCP, port_range_min: 80, port_range_max: 80 }
-        #- { direction: ingress, protocol: TCP, port_range_min: 443, port_range_max: 443 }
-        - { direction: ingress, protocol: TCP, port_range_min: 0, port_range_max: 65535 }
-        - { direction: ingress, protocol: UDP, port_range_min: 0, port_range_max: 65535 }
-        #- { direction: ingress, protocol: ICMP }
-        #- { direction: egress, protocol: ICMP }
-        #- { direction: egress, protocol: TCP }
-        #- { direction: egress, protocol: UDP }
 
 outputs:
 
@@ -103,6 +125,14 @@ outputs:
   server_private_ip:
     description: IP address of client in private network
     value: { get_attr: [ server, first_address ] }
+
+  floating_ip_url:
+    description: grafana URL
+    value:
+      str_replace:
+        template: http://$floating_ip$/
+        params:
+          $floating_ip$: { get_attr: [floating_ip, floating_ip_address] }
 
   security_group_id:
     description: ID of the security group associate to the server

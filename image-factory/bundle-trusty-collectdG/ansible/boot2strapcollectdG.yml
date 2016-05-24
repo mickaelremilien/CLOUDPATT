@@ -6,4 +6,4 @@
     vpn_static:
 
   roles:
-    - wordpress_my
+    - collectdG
