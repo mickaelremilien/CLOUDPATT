@@ -92,7 +92,7 @@ resources:
       networks:
         - port: { get_resource: server_port }
       user_data_format: RAW
-      user_data:
+      user_data: |
             #!/usr/bin/env bash
             export DEBIAN_FRONTEND=noninteractive
             apt-get update 2>&1 >> /var/log/col_srv.log
@@ -105,7 +105,7 @@ resources:
             sudo mkdir /home/cloud/config
             sudo chown -R cloud:cloud /home/cloud/config
             git clone  https://github.com/mickaelremilien/CLOUDPATT.git
-            sudo ansible-playbook /home/cloud/CLOUDPATT/image-factory/bundle-trusty-collectdG/ansible/boot2strap2collectdG.yml
+            sudo ansible-playbook /home/cloud/CLOUDPATT/image-factory/bundle-trusty-collectdG/ansible/boot2strapcollectdG.yml
 
   server_port:
     type: OS::Neutron::Port
