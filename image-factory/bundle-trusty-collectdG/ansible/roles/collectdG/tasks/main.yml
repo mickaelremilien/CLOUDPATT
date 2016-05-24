@@ -23,22 +23,22 @@
       a2ensite apache2-graphite
 
   #- name: setting enable carbon-cache
-  - lineinfile:
+  - replace:
       dest=/etc/default/graphite-carbon
       regexp='#CARBON_CACHE_ENABLED = false'
-      line='CARBON_CACHE_ENABLED = true'
+      replace='CARBON_CACHE_ENABLED = true'
 
   #- name: setting enable carbon-cache2
-  - lineinfile:
+  - replace:
       dest=/etc/carbon/carbon.conf
       regexp='#ENABLE_LOGROTATION = false'
-      line='ENABLE_LOGROTATION = true'
+      replace='ENABLE_LOGROTATION = true'
 
   #- name: setting enable carbon-cache3
-  - lineinfile:
+  - replace:
       dest=/etc/carbon/carbon.conf
       regexp='#MAX_CREATES_PER_MINUTE = 50'
-      line='MAX_CREATES_PER_MINUTE = 600'
+      replace='MAX_CREATES_PER_MINUTE = 600'
 
   - name:   configuration graphite-carbon
     args:
@@ -49,27 +49,26 @@
       cp /usr/share/doc/graphite-carbon/examples/storage-aggregation.conf.example /etc/carbon/storage-aggregation.conf
 
   #- name: setting  graphite-local
-  - lineinfile:
+  - replace:
       dest=/etc/graphite/local_settings.py
       regexp='#SECRET_KEY = \'UNSAFE_DEFAULT\''
-      line='SECRET_KEY = \'jkfdjlskfjdslkjopelezkmlezakmlza5654trlkre\''
+      replace='SECRET_KEY = \'jkfdjlskfjdslkjopelezkmlezakmlza5654trlkre\''
 
   #- name: setting  graphite-local2
-  - lineinfile:
+  - replace:
       dest=/etc/graphite/local_settings.py
       regexp='#TIME_ZONE = America/Los_Angeles'
-      line='TIME_ZONE = Europe/Paris'
+      replace='TIME_ZONE = Europe/Paris'
 
   - name: demarrage services
     args:
       #chdir: /etc/openvpn/
       executable: /bin/bash
     shell: |
-      sudo -i
       graphite-manage syncdb --noinput
       chown _graphite:_graphite /var/lib/graphite/graphite.db
-      service carbon-cache restart
-      service apache2 restart
-      service grafana-server restart
-      service collecd restart
+      sudo service carbon-cache restart
+      sudo service apache2 restart
+      sudo service grafana-server restart
+      sudo service collecd restart
       #update-rc.d grafana-server defaults 95 10
