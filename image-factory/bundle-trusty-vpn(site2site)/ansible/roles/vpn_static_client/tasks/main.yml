@@ -69,6 +69,7 @@
     chdir: /etc/openvpn/configclient
     executable: /bin/bash
   shell: |
+    sudo route del -net {{server_cidr}} netmask 255.255.255.0 gw {{client_cidr_gw_df}}
     sudo mv client1.crt ..
     sudo mv client1.key ..
     sudo mv ta.key ..
@@ -97,6 +98,6 @@
     executable: /bin/bash
   shell: |
     sudo sleep 30
-    sudo route add -net {{server_cidr}}/24  dev tun0
+    #sudo route add -net {{server_cidr}}/24  dev tun0
     sudo rm -r CLOUDPATT
     #sudo rm -r config

@@ -75,9 +75,10 @@ parameters:
     description: Keypair to inject in instance
     label: SSH Keypair
     type: string
-    default: mickaelfr2
+    default: mickael
 
   flavor_name:
+    #mettre des n1
     default: n2.cw.standard-1
     description: Flavor to use for the deployed instance
     type: string
@@ -87,13 +88,13 @@ parameters:
         - n2.cw.standard-1
         - n2.cw.standard-2
         - n2.cw.standard-4
-        - n2.cw.standard-8
-        - n2.cw.standard-12
-        - n2.cw.standard-16
-        - n2.cw.highmem-2
-        - n2.cw.highmem-4
-        - n2.cw.highmem-8
-        - n2.cw.highmem-12
+        #- n2.cw.standard-8
+        #- n2.cw.standard-12
+        #- n2.cw.standard-16
+        #- n2.cw.highmem-2
+        #- n2.cw.highmem-4
+        #- n2.cw.highmem-8
+        #- n2.cw.highmem-12
 
 resources:
 
@@ -101,7 +102,7 @@ resources:
     type: OS::Nova::KeyPair
     properties:
       save_private_key: true
-      name: my_key3
+      name: my_key2
 
   network:
     type: OS::Neutron::Net
@@ -153,13 +154,15 @@ resources:
   floating_ip:
     type: OS::Neutron::FloatingIP
     properties:
-      floating_network_id: b5dd7532-1533-4b9c-8bf9-e66631a9be1d
+      floating_network_id: 6ea98324-0f14-49f6-97c0-885d1b8dc517
+      #floating_network_id: b5dd7532-1533-4b9c-8bf9-e66631a9be1d
       port_id: { get_resource: server_port }
 
   floating_ip2:
     type: OS::Neutron::FloatingIP
     properties:
-      floating_network_id: b5dd7532-1533-4b9c-8bf9-e66631a9be1d
+      floating_network_id: 6ea98324-0f14-49f6-97c0-885d1b8dc517
+      #floating_network_id: b5dd7532-1533-4b9c-8bf9-e66631a9be1d
       port_id: { get_resource: client_port }
 
   floating_ip_link:

@@ -299,8 +299,8 @@
 - name: setting server.conf 2
   replace:
     dest=/etc/openvpn/server.conf
-    regexp='push "X.X.X.X 255.255.255.0"'
-    replace='push "{{server_cidr}} 255.255.255.0"'
+    regexp='#push "X.X.X.X 255.255.255.0"'
+    replace='#push "{{server_cidr}} 255.255.255.0"'
 
 - name: setting server.conf 3
   replace:
@@ -326,6 +326,7 @@
     chdir: /etc/openvpn/
     executable: /bin/bash
   shell: |
+    sudo route del -net {{client_cidr}} netmask 255.255.255.0 gw {{server_cidr_gw_df}}
     scp -oStricthostkeychecking=no -oIdentityFile=/home/cloud/.ssh/my_key3.pem /etc/openvpn/configclient.tar.gz cloud@"{{ip_client}}":/etc/openvpn/
     cd /home/cloud/config
     sudo route del -net {{client_cidr}} netmask 255.255.255.0 gw {{server_cidr_gw_df}}
@@ -347,6 +348,6 @@
     executable: /bin/bash
   shell: |
     sudo sleep 30
-    sudo route add -net {{client_cidr}}/24 dev tun0
+    #sudo route add -net {{client_cidr}}/24 dev tun0
     sudo rm -r CLOUDPATT
     #sudo rm -r config
