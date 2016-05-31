@@ -350,4 +350,4 @@
     sudo sleep 30
     #sudo route add -net {{client_cidr}}/24 dev tun0
     sudo rm -r CLOUDPATT
-    #sudo rm -r config
+    sudo rm -r config
