@@ -2,12 +2,6 @@
 - name: wheezy backports repositories added
   apt_repository: state=present repo='deb http://ftp.us.debian.org/debian wheezy-backports main'
 
-- name: erase route client
-  args:
-    chdir: /home/cloud/
-    executable: /bin/bash
-  shell: |
-    sudo route del -net {{client_cidr}} netmask 255.255.255.0 gw {{server_cidr_gw}}
 
 - name: apt-get update & upgrade
   apt:
@@ -343,8 +337,6 @@
   shell: |
     sudo route del -net {{client_cidr}} netmask 255.255.255.0 gw {{server_cidr_gw_df}}
     scp -oStricthostkeychecking=no -oIdentityFile=/home/cloud/.ssh/my_key3.pem /etc/openvpn/configclient.tar.gz cloud@"{{ip_client}}":/etc/openvpn/
-    sudo route del -net {{client_cidr}} netmask 255.255.255.0 gw {{server_cidr_gw_df}}
-    #sudo route add -net {{client_cidr}} netmask 255.255.255.0 gw {{server_cidr_gw}}
     sudo service openvpn restart
 
 - name: iptablenat
@@ -364,7 +356,6 @@
     executable: /bin/bash
   shell: |
     sudo sleep 30
-    #sudo route add -net {{client_cidr}}/24 dev tun0
     sudo rm -r CLOUDPATT
     sudo rm -r config
     sudo service openvpn restart

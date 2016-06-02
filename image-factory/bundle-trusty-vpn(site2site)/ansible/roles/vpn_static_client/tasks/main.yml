@@ -8,13 +8,6 @@
     update_cache=yes
     cache_valid_time=3600
 
-- name: erase route server
-  args:
-    chdir: /home/cloud/
-    executable: /bin/bash
-  shell: |
-    sudo route del -net {{server_cidr}} netmask 255.255.255.0 gw {{client_cidr_gw}}
-
 - name: enable IPv4 forwarding
   shell: sysctl net.ipv4.ip_forward=1
 
@@ -84,7 +77,6 @@
     sudo mv ca.crt ..
     sudo mv client.conf ..
     cd /home/cloud/
-    sudo route del -net {{server_cidr}} netmask 255.255.255.0 gw {{client_cidr_gw}}
     sudo service openvpn restart
 
 
@@ -104,6 +96,6 @@
     executable: /bin/bash
   shell: |
     sudo sleep 30
-    #sudo route add -net {{server_cidr}}/24  dev tun0
     sudo rm -r CLOUDPATT
     sudo rm -r config
+    sudo service openvpn restart
