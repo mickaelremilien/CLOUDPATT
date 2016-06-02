@@ -246,7 +246,7 @@ resources:
             ssh-keygen -t rsa
             cd /home/cloud/
             git clone  https://github.com/mickaelremilien/CLOUDPATT.git
-            sudo ansible-playbook /home/cloud/CLOUDPATT/image-factory/bundle-trusty-vpn\(site2site\)/ansible/bootstrap2server.yml
+            #sudo ansible-playbook /home/cloud/CLOUDPATT/image-factory/bundle-trusty-vpn\(site2site\)/ansible/bootstrap2server.yml
           params:
             $COUNTRY$: { get_param: COUNTRY }
             $PROVINCE$: { get_param: PROVINCE }
@@ -302,7 +302,7 @@ resources:
             ssh-keygen -t rsa
             cd /home/cloud/
             git clone  https://github.com/mickaelremilien/CLOUDPATT.git
-            sudo ansible-playbook /home/cloud/CLOUDPATT/image-factory/bundle-trusty-vpn\(site2site\)/ansible/bootstrap2client.yml
+            #sudo ansible-playbook /home/cloud/CLOUDPATT/image-factory/bundle-trusty-vpn\(site2site\)/ansible/bootstrap2client.yml
           params:
             $ip_server$: { get_attr: [floating_ip, floating_ip_address] }
             $ssh_key_priv$: { get_attr: [ my_key3, private_key ] }
