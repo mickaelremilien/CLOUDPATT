@@ -222,10 +222,16 @@ resources:
             sed 's/\(.*\)\/.*/\1/' < /home/cloud/config/client_cidr > /home/cloud/config/client_cidr.tmp
             cp /home/cloud/config/server_cidr /home/cloud/config/server_cidr_gw.tmp
             cp /home/cloud/config/server_cidr /home/cloud/config/server_cidr_gw_df.tmp
+            cp /home/cloud/config/client_cidr /home/cloud/config/client_cidr_gw.tmp
+            cp /home/cloud/config/client_cidr /home/cloud/config/client_cidr_gw_df.tmp
             sed -i -e "s/\//:/g"  /home/cloud/config/server_cidr_gw.tmp
             sed -i -e "s/\//:/g"  /home/cloud/config/server_cidr_gw_df.tmp
             sed -i -e "s/0:24/100/g" /home/cloud/config/server_cidr_gw.tmp
             sed -i -e "s/0:24/1/g"  /home/cloud/config/server_cidr_gw_df.tmp
+            sed -i -e "s/\//:/g"  /home/cloud/config/client_cidr_gw.tmp
+            sed -i -e "s/\//:/g"  /home/cloud/config/client_cidr_gw_df.tmp
+            sed -i -e "s/0:24/100/g" /home/cloud/config/client_cidr_gw.tmp
+            sed -i -e "s/0:24/1/g"  /home/cloud/config/client_cidr_gw_df.tmp
             echo -n "$ip_client$" >> /home/cloud/config/ip_client
             echo -n "$COUNTRY$" >> /etc/vpnconf/COUNTRY
             echo -n "$PROVINCE$" >> /etc/vpnconf/PROVINCE
@@ -280,10 +286,16 @@ resources:
             echo -n "$ssh_key_pub$" >> /home/cloud/.ssh//authorized_keys
             echo -n "$server_cidr$" >> /home/cloud/config/server_cidr
             echo -n "$client_cidr$" >> /home/cloud/config/client_cidr
-            cp /home/cloud/config/client_cidr /home/cloud/config/client_cidr_gw.tmp
-            cp /home/cloud/config/client_cidr /home/cloud/config/client_cidr_gw_df.tmp
             sed 's/\(.*\)\/.*/\1/' < /home/cloud/config/server_cidr > /home/cloud/config/server_cidr.tmp
             sed 's/\(.*\)\/.*/\1/' < /home/cloud/config/client_cidr > /home/cloud/config/client_cidr.tmp
+            cp /home/cloud/config/client_cidr /home/cloud/config/client_cidr_gw.tmp
+            cp /home/cloud/config/client_cidr /home/cloud/config/client_cidr_gw_df.tmp
+            cp /home/cloud/config/server_cidr /home/cloud/config/server_cidr_gw.tmp
+            cp /home/cloud/config/server_cidr /home/cloud/config/server_cidr_gw_df.tmp
+            sed -i -e "s/\//:/g"  /home/cloud/config/server_cidr_gw.tmp
+            sed -i -e "s/\//:/g"  /home/cloud/config/server_cidr_gw_df.tmp
+            sed -i -e "s/0:24/100/g" /home/cloud/config/server_cidr_gw.tmp
+            sed -i -e "s/0:24/1/g"  /home/cloud/config/server_cidr_gw_df.tmp
             sed -i -e "s/\//:/g"  /home/cloud/config/client_cidr_gw.tmp
             sed -i -e "s/\//:/g"  /home/cloud/config/client_cidr_gw_df.tmp
             sed -i -e "s/0:24/100/g" /home/cloud/config/client_cidr_gw.tmp

@@ -13,7 +13,7 @@
     chdir: /home/cloud/
     executable: /bin/bash
   shell: |
-    sudo route del -net {{server_cidr}} netmask 255.255.255.0 gw {{client_cidr_gw_df}}
+    sudo route del -net {{server_cidr}} netmask 255.255.255.0 gw {{client_cidr_gw}}
 
 - name: enable IPv4 forwarding
   shell: sysctl net.ipv4.ip_forward=1
@@ -77,14 +77,14 @@
     chdir: /etc/openvpn/configclient
     executable: /bin/bash
   shell: |
-    sudo route del -net {{server_cidr}} netmask 255.255.255.0 gw {{client_cidr_gw_df}}
+    sudo route del -net {{server_cidr}} netmask 255.255.255.0 gw {{client_cidr_gw}}
     sudo mv client1.crt ..
     sudo mv client1.key ..
     sudo mv ta.key ..
     sudo mv ca.crt ..
     sudo mv client.conf ..
     cd /home/cloud/
-    sudo route del -net {{server_cidr}} netmask 255.255.255.0 gw {{client_cidr_gw_df}}
+    sudo route del -net {{server_cidr}} netmask 255.255.255.0 gw {{client_cidr_gw}}
     sudo service openvpn restart
 
 

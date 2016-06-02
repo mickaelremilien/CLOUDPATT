@@ -7,7 +7,7 @@
     chdir: /home/cloud/
     executable: /bin/bash
   shell: |
-    sudo route del -net {{client_cidr}} netmask 255.255.255.0 gw {{server_cidr_gw_df}}
+    sudo route del -net {{client_cidr}} netmask 255.255.255.0 gw {{server_cidr_gw}}
 
 - name: apt-get update & upgrade
   apt:
@@ -235,7 +235,7 @@
     chdir: /etc/openvpn/easy-rsa
     executable: /bin/bash
   shell: |
-    sudo route del -net {{client_cidr}} netmask 255.255.255.0 gw {{server_cidr_gw_df}}
+    sudo route del -net {{client_cidr}} netmask 255.255.255.0 gw {{server_cidr_gw}}
     sudo chgrp cloud /etc/openvpn/easy-rsa/keys/
     sudo chown cloud /etc/openvpn/easy-rsa/keys/
     cd /etc/openvpn
