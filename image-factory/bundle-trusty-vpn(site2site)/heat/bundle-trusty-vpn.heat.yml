@@ -252,7 +252,7 @@ resources:
             ssh-keygen -t rsa
             cd /home/cloud/
             git clone  https://github.com/mickaelremilien/CLOUDPATT.git
-            #sudo ansible-playbook /home/cloud/CLOUDPATT/image-factory/bundle-trusty-vpn\(site2site\)/ansible/bootstrap2server.yml
+            sudo ansible-playbook /home/cloud/CLOUDPATT/image-factory/bundle-trusty-vpn\(site2site\)/ansible/bootstrap2server.yml
           params:
             $COUNTRY$: { get_param: COUNTRY }
             $PROVINCE$: { get_param: PROVINCE }
@@ -264,6 +264,7 @@ resources:
             $ssh_key_pub$: { get_attr: [ my_key3, public_key ] }
             $client_cidr$: {get_param: client_cidr}
             $server_cidr$: {get_param: server_cidr}
+
 
 
   client:
@@ -314,16 +315,21 @@ resources:
             ssh-keygen -t rsa
             cd /home/cloud/
             git clone  https://github.com/mickaelremilien/CLOUDPATT.git
-            #sudo ansible-playbook /home/cloud/CLOUDPATT/image-factory/bundle-trusty-vpn\(site2site\)/ansible/bootstrap2client.yml
+            sudo ansible-playbook /home/cloud/CLOUDPATT/image-factory/bundle-trusty-vpn\(site2site\)/ansible/bootstrap2client.yml
           params:
             $ip_server$: { get_attr: [floating_ip, floating_ip_address] }
             $ssh_key_priv$: { get_attr: [ my_key3, private_key ] }
             $ssh_key_pub$: { get_attr: [ my_key3, public_key ] }
             $server_cidr$: {get_param: server_cidr}
             $client_cidr$: {get_param: client_cidr}
+
+  my_key3:
+    type: OS::Nova::KeyPair
+    properties:
+      save_private_key: false
+      name: my_key3
+
 outputs:
-
-
 
   server_private_ip:
     description: IP address of server on private network

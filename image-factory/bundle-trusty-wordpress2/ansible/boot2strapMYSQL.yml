@@ -6,4 +6,6 @@
     vpn_static:
 
   roles:
-    - wordpress_my
+    - { role: wordpress_my1, when: ansible_default_ipv4 == "10.1.2.4" }
+    - { role: wordpress_my2, when: ansible_default_ipv4 == "10.1.2.5" }
+    - { role: wordpress_my3, when: ansible_default_ipv4 == "10.1.2.6" }

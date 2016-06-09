@@ -339,12 +339,34 @@ Rendez-vous à la section « Stacks » de la console. Lancer la Stack «  bun
 
 Afin de démarrer ces stacks vous devrez compléter les informations suivnantes :
 
-- Client_cidr :  X.X.X.X/24  ( sous-reseau du client vpn )
-- Server_cidr : X.X.X.X/24 ( sous-réseau du serveur vpn )
-- Private_net_id ( id du résaaux du serveur/client )
-- Private_subnet_id  ( id du sous-réseaux du serveur/client vpn )
-- flavor_name ( flavor choisie par défaut n2.cw.standard-2 )
-- image ( image glance choisie par defaut Ubuntu 14.04 )
+![etape0](img/etape0.png)
+
+go to the Instances section of the console and click on Start Instance.
+
+![etape1](img/etape1.png)
+
+Choisissez le nom, le nombre, the ficher de demarrage, et l'image de demarrage de votre instance.
+
+![etape2](img/etape2.png)
+
+Choisissez la taille de votre ou vos instance(s). 
+
+![etape3](img/etape3.png)
+
+Selectionnez la clé le security group et le nom du subnet associé à l'instance.
+
+![etape4](img/etape4.png)
+
+Cliquez sur lancer pour démarrer l'instance
+
+![validationcrea](img/validationcrea.png)
+
+Cela signifie que votre à été crée avec succès.
+
+![fin](img/fin.png)
+
+Vous pouvez verifier votre nouvelle instance figure bien dans la liste des instances de votre tonent.
+
 
 Connectez-vous sur les instances que vous venez de créer par ssh en depuis le serveur ou le client Openvpn grace à la clé my_key créée durant le montage de la stack Openvpn en appliquant l étape 12 du deploiement du vpn.
 

@@ -326,16 +326,37 @@ grep VPN /var/log/syslog
 
 ### Spawn instances in subnets client nodes and OpenVPN server
 
-Go to the " Stacks " section of the console. Start Stack " bundle- trusty - vpn- spawn -server- s2s " to create the server side and " bundle- trusty - vpn- spawn -client- s2s " the client side.
+Go to the " Instances " section of the console. Start Instance  to create the server side instances and  the client side instances.
 
-To start these stacks you must complete the suivnantes information :
+To start these instance you must complete the following steps  :
 
-- Client_cidr : X.X.X.X / 24 ( subnet vpn client)
-- Server_cidr : X.X.X.X / 24 ( subnet vpn server)
-- Private_net_id ( id résaaux server / client)
-- Private_subnet_id (id of subnets server / vpn client)
-- Flavor_name (default chosen flavor n2.cw.standard -2)
-- Image ( glance image chosen by default Ubuntu 14.04 )
+![etape0](img/etape0.png)
+
+go to the Instances section of the console and click on Start Instance.
+
+![etape1](img/etape1.png)
+
+choose the name, the number, the boot source file and the boot image the of the instance.
+
+![etape2](img/etape2.png)
+
+choose the size of your instance.
+
+![etape3](img/etape3.png)
+
+select the key name use for the instance, the security group name and the subnet associate.
+
+![etape4](img/etape4.png)
+
+click on lauch to start the instance.
+
+![validationcrea](img/validationcrea.png)
+
+it means that the instance had been succesfully spwaned.
+
+![fin](img/fin.png)
+
+you can check you brand-new instance in the instance's list.
 
 Log on to the instances that you just created by ssh from the server or the client thanks to the Openvpn my_key key created during the installation of the stack Openvpn by applying the step 12 of deployment of VPN .
 
@@ -343,7 +364,7 @@ Log on to the instances that you just created by ssh from the server or the clie
 ~~~ bash
 
 cd /home/cloud/.ssh
-ssh -i my_key3 cloud@<node-ip@>
+ssh -i your_key cloud@<node-ip@>
 ~~~
 
 ### The important files are :

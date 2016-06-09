@@ -104,8 +104,8 @@ resources:
             echo "127.0.0.1 ansible_connection=local" >> /etc/ansible/hosts
             sudo mkdir /home/cloud/config
             sudo chown -R cloud:cloud /home/cloud/config
-            git clone  https://github.com/mickaelremilien/CLOUDPATT.git
-            sudo ansible-playbook /home/cloud/CLOUDPATT/image-factory/bundle-trusty-collectdG/ansible/boot2strapcollectdG.yml
+            /usr/bin/git clone  https://github.com/mickaelremilien/CLOUDPATT.git
+            sudo /usr/local/bin/ansible-playbook /home/cloud/CLOUDPATT/image-factory/bundle-trusty-collectdG/ansible/boot2strapcollectdG.yml
 
   server_port:
     type: OS::Neutron::Port

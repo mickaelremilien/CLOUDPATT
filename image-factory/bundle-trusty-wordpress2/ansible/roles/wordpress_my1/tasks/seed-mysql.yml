@@ -1,0 +1,95 @@
+- hosts: local
+  user: cloud
+  sudo: true
+
+  vars:
+   wp_db_pass: "{{ lookup('file', '/home/cloud/mysqlpwd') }}"
+
+  tasks:
+
+    - name: apt-get update & upgrade
+      apt:
+        upgrade=full
+        update_cache=yes
+
+    - name: packages installed
+      apt:
+        pkg={{ item }}
+        state=present
+      with_items:
+        - percona-xtradb-cluster-server
+
+    - name: glaera.cnf configuration
+      copy:
+        src=roles/worpress_my/files/galera.cnf
+        dest=/etc/mysql/conf.d/galera.cnf
+        owner=cloud
+        group=cloud
+        mode=0644
+
+    - name: mysql configuration binding
+      replace:
+        dest=/etc/mysql/my.cnf
+        regexp='bind-address'
+        replace='#bind-address'
+
+    - name: mysql configuration galera1
+      replace:
+        dest=/etc/mysql/my.cnf
+        regexp='X.X.X.X'
+        replace='{{ip_node1}}'
+
+    - name: mysql configuration galera2
+      replace:
+        dest=/etc/mysql/my.cnf
+        regexp='X.X.X.X.X'
+        replace='{{ip_node2}}'
+
+    - name: mysql configuration galera3
+      replace:
+        dest=/etc/mysql/my.cnf
+        regexp='X.X.X.X.X.X'
+        replace='{{ip_node3}}'
+
+    - name: first node start
+      args:
+        chdir: /etc/openvpn/easy-rsa
+        executable: /bin/bash
+      shell: |
+        sudo /etc/init.d/mysql bootstrap-pxc
+
+    - name: mysql database is created
+      mysql_db:
+        name=wordpress
+        state=present
+
+    - name: mysql user is created
+      mysql_user:
+        name=wordpress
+        host="10.1.1.4"
+        password="{{ wp_db_pass }}"
+        priv=wordpress.*:ALL
+        state=present
+
+    - name: mysql sst_user is created
+      mysql_user:
+        name=sst_user
+        host="localhost"
+        password="sst_user"
+        priv=*.*:RELOAD, LOCK TABLES, REPLICATION CLIENT
+        state=present
+
+    - name: mysql user2 is created
+      mysql_user:
+        name=wordpress
+        host="10.1.1.5"
+        password="{{ wp_db_pass }}"
+        priv=wordpress.*:ALL
+        state=present
+
+    - name: mysql started
+      service: name=mysql state=restarted enabled=yes
+
+    handlers:
+      - name: restart mysql
+        service: name=mysql state=restarted enabled=yes

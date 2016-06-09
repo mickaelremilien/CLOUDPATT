@@ -52,9 +52,15 @@ resources:
     properties:
       rules:
         - { direction: ingress, protocol: TCP, port_range_min: 22, port_range_max: 22 }
+        - { direction: egress, protocol: TCP, port_range_min: 22, port_range_max: 22 }
         - { direction: ingress, protocol: TCP, port_range_min: 3306, port_range_max: 3306 }
+        - { direction: egress, protocol: TCP, port_range_min: 3306, port_range_max: 3306 }
         - { direction: ingress, protocol: TCP, port_range_min: 4567, port_range_max: 4567 }
         - { direction: egress, protocol: TCP, port_range_min: 4567, port_range_max: 4567 }
+        - { direction: ingress, protocol: TCP, port_range_min: 4568, port_range_max: 4568 }
+        - { direction: egress, protocol: TCP, port_range_min: 4568, port_range_max: 4568 }
+        - { direction: ingress, protocol: TCP, port_range_min: 4444, port_range_max: 4568 }
+        - { direction: egress, protocol: TCP, port_range_min: 4444, port_range_max: 4444 }
         - { direction: ingress, protocol: ICMP }
         - { direction: egress, protocol: ICMP }
         - { direction: egress, protocol: TCP }
