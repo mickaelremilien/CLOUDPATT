@@ -78,10 +78,3 @@
         password="{{ wp_db_pass }}"
         priv=wordpress.*:ALL
         state=present
-
-    - name: mysql started
-      service: name=mysql state=restarted enabled=yes
-
-  handlers:
-      - name: restart mysql
-        service: name=mysql state=restarted enabled=yes
