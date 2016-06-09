@@ -24,6 +24,7 @@
         state=present
       with_items:
         - percona-xtradb-cluster-server
+        - python-mysqldb
 
     - name: galera.cnf configuration
       template:
