@@ -59,7 +59,7 @@
 
     - name: first node start
       args:
-        chdir: /etc/openvpn/easy-rsa
+        chdir: /home/cloud
         executable: /bin/bash
       shell: |
         sudo /etc/init.d/mysql bootstrap-pxc
