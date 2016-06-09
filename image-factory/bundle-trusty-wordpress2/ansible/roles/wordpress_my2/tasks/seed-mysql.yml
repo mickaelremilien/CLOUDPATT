@@ -4,6 +4,12 @@
 
   vars:
    wp_db_pass: "{{ lookup('file', '/home/cloud/mysqlpwd') }}"
+   ip_node1: 10.1.2.4
+   #"{{ lookup('file', '/home/cloud/ip_node') }}"
+   ip_node2: 10.1.2.5
+   #"{{ lookup('file', '/home/cloud/ip_node2') }}"
+   ip_node3: 10.1.2.6
+   #"{{ lookup('file', '/home/cloud/ip_node3') }}"
 
   tasks:
 
@@ -18,10 +24,11 @@
         state=present
       with_items:
         - percona-xtradb-cluster-server
+        - python-mysqldb
 
-    - name: glaera.cnf configuration
-      copy:
-        src=roles/worpress_my/files/galera.cnf
+    - name: galera.cnf configuration
+      template:
+        src=galera.cnf
         dest=/etc/mysql/conf.d/galera.cnf
         owner=cloud
         group=cloud
@@ -33,49 +40,9 @@
         regexp='bind-address'
         replace='#bind-address'
 
-    - name: mysql configuration galera1
-      replace:
-        dest=/etc/mysql/my.cnf
-        regexp='X.X.X.X.X'
-        replace='{{ip_node2}}'
-
-    - name: mysql configuration galera2
-      replace:
-        dest=/etc/mysql/my.cnf
-        regexp='X.X.X.X'
-        replace='{{ip_node1}}'
-
-    - name: mysql configuration galera3
-      replace:
-        dest=/etc/mysql/my.cnf
-        regexp='X.X.X.X.X.X'
-        replace='{{ip_node3}}'
-
     - name: first node start
       args:
-        chdir: /etc/openvpn/easy-rsa
+        chdir: /home/cloud
         executable: /bin/bash
       shell: |
         sudo /etc/init.d/mysql start
-
-    - name: mysql database is created
-      mysql_db:
-        name=wordpress
-        state=present
-
-    - name: mysql sst_user is created
-      mysql_user:
-        name=sst_user
-        host="localhost"
-        password="sst_user"
-        priv=*.*:RELOAD, LOCK TABLES, REPLICATION CLIENT
-        state=present
-
-
-
-    - name: mysql started
-      service: name=mysql state=restarted enabled=yes
-
-  handlers:
-      - name: restart mysql
-        service: name=mysql state=restarted enabled=yes

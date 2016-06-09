@@ -11,7 +11,6 @@ innodb_autoinc_lock_mode=2
 innodb_locks_unsafe_for_binlog=1
 wsrep_provider=/usr/lib/libgalera_smm.so
 wsrep_cluster_address=gcomm://10.1.2.4,10.1.2.5,10.1.2.6
-binlog_format=ROW
 # Node
 wsrep_node_address={{ansible_default_ipv4.address}}
 wsrep_sst_method=xtrabackup
