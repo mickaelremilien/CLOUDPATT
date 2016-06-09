@@ -74,7 +74,7 @@
     - name: mysql sst_user is created
       mysql_user:
         name=sst_user
-        host="localhost"
+        host="127.0.0.1"
         password="sst_user"
         priv=*.*:RELOAD, LOCK TABLES, REPLICATION CLIENT
         state=present
@@ -90,6 +90,6 @@
     - name: mysql started
       service: name=mysql state=restarted enabled=yes
 
-    handlers:
+  handlers:
       - name: restart mysql
         service: name=mysql state=restarted enabled=yes
