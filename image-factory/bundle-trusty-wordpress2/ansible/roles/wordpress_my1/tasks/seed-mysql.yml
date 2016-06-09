@@ -21,7 +21,7 @@
 
     - name: glaera.cnf configuration
       copy:
-        src=roles/worpress_my/files/galera.cnf
+        src=roles/worpress_my1/files/galera.cnf
         dest=/etc/mysql/conf.d/galera.cnf
         owner=cloud
         group=cloud
