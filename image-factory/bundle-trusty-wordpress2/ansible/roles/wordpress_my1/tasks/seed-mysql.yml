@@ -21,7 +21,7 @@
 
     - name: galera.cnf configuration
       copy:
-        src=roles/wordpress_my1/files/galera.cnf
+        src=galera.cnf
         dest=/etc/mysql/conf.d/galera.cnf
         owner=cloud
         group=cloud
