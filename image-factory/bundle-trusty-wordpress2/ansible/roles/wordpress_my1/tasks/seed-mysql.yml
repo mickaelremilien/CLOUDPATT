@@ -65,7 +65,7 @@
     - name: mysql sst_user is created
       mysql_user:
         name=sst_user
-        host="%"
+        host="all"
         password="sst_user"
         priv="*.*:RELOAD, LOCK TABLES, REPLICATION CLIENT"
         state=present
