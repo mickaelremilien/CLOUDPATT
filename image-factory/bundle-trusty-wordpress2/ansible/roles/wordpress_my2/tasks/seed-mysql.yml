@@ -76,6 +76,6 @@
     - name: mysql started
       service: name=mysql state=restarted enabled=yes
 
-    handlers:
+  handlers:
       - name: restart mysql
         service: name=mysql state=restarted enabled=yes
