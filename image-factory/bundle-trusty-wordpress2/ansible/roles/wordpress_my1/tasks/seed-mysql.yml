@@ -19,9 +19,9 @@
       with_items:
         - percona-xtradb-cluster-server
 
-    - name: glaera.cnf configuration
+    - name: galera.cnf configuration
       copy:
-        src=roles/worpress_my1/files/galera.cnf
+        src=roles/wordpress_my1/files/galera.cnf
         dest=/etc/mysql/conf.d/galera.cnf
         owner=cloud
         group=cloud
