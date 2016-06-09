@@ -13,7 +13,7 @@ wsrep_provider=/usr/lib/libgalera_smm.so
 wsrep_cluster_address=gcomm://10.1.2.4,10.1.2.5,10.1.2.6
 binlog_format=ROW
 # Node
-wsrep_node_address={{ansible_default_ipv4}}
+wsrep_node_address={{ansible_default_ipv4.address}}
 wsrep_sst_method=xtrabackup
 wsrep_cluster_name=mycluster
 wsrep_sst_auth="sst_user:sst_user"

@@ -50,7 +50,7 @@
 
     - name: mysql database is created
       mysql_db:
-        name=wordpress
+        name="wordpress"
         state=present
 
     - name: mysql user is created
