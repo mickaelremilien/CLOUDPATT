@@ -42,19 +42,19 @@
     - name: mysql configuration galera1
       replace:
         dest=/etc/mysql/my.cnf
-        regexp='X.X.X.X'
+        regexp='AAA'
         replace='{{ip_node1}}'
 
     - name: mysql configuration galera2
       replace:
         dest=/etc/mysql/my.cnf
-        regexp='X.X.X.X.X'
+        regexp='BBB'
         replace='{{ip_node2}}'
 
     - name: mysql configuration galera3
       replace:
         dest=/etc/mysql/my.cnf
-        regexp='X.X.X.X.X.X'
+        regexp='CCC'
         replace='{{ip_node3}}'
 
     - name: first node start
