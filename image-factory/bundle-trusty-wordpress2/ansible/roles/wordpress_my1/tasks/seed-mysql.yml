@@ -2,8 +2,7 @@
   user: cloud
   sudo: true
 
-  vars:
-   wp_db_pass: "{{ lookup('file', '/home/cloud/mysqlpwd') }}"
+
 
   tasks:
 
