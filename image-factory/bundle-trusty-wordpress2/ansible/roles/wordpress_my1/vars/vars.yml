@@ -1,6 +1,6 @@
 ---
 worpress_my:
-ip_node:  "10.1.2.4"
+ip_node1:  "10.1.2.4"
 #"{{ lookup('file', '/home/cloud/ip_node') }}"
 ip_node2: "10.1.2.5"
 #"{{ lookup('file', '/home/cloud/ip_node2') }}"
