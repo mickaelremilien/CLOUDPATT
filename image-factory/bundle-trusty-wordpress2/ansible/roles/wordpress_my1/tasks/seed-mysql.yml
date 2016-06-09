@@ -26,7 +26,7 @@
         - percona-xtradb-cluster-server
 
     - name: galera.cnf configuration
-      copy:
+      template:
         src=galera.cnf
         dest=/etc/mysql/conf.d/galera.cnf
         owner=cloud
@@ -39,23 +39,6 @@
         regexp='bind-address'
         replace='#bind-address'
 
-    - name: mysql configuration galera1
-      replace:
-        dest=/etc/mysql/my.cnf
-        regexp='AAA'
-        replace='{{ip_node1}}'
-
-    - name: mysql configuration galera2
-      replace:
-        dest=/etc/mysql/my.cnf
-        regexp='BBB'
-        replace='{{ip_node2}}'
-
-    - name: mysql configuration galera3
-      replace:
-        dest=/etc/mysql/my.cnf
-        regexp='CCC'
-        replace='{{ip_node3}}'
 
     - name: first node start
       args:
@@ -63,6 +46,8 @@
         executable: /bin/bash
       shell: |
         sudo /etc/init.d/mysql bootstrap-pxc
+
+
     - name: mysql database is created
       mysql_db:
         name=wordpress
