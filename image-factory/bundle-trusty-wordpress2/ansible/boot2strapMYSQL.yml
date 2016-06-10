@@ -1,39 +1,37 @@
-- hosts: local
-  user: cloud
-  become: yes
+---
+# - hosts: local
+#   user: cloud
+#   become: yes
 
-  vars:
-    wordpress_my:
-
-  roles:
-    - wordpress_my1
-
-  # - name: apply common configuration to the node1
-  #   hosts: localhost
-  #   user: cloud
-  #   become: yes
-  #   roles:
-  #     #- { role: wordpress_my1, when: ansible_default_ipv4.address == "10.1.2.4" }
-  #     # - wordpress_my1........::
-  # - name: apply common configuration to the node2
-  #   hosts: "10.1.2.5"
-  #   user: cloud
-  #   become: yes
-  #   roles:
-  #     - { role: wordpress_my2, when: ansible_default_ipv4.address == "10.1.2.5" }
-  #   #  - wordpress_my2
+  # vars:
+  #   wordpress_my:
   #
-  #
-  # - name: apply common configuration to the node3
-  #   hosts: "10.1.2.6"
-  #   user: cloud
-  #   become: yes
-  #   roles:
-  #     - { role: wordpress_my3, when: ansible_default_ipv4.address == "10.1.2.6" }
-  #   #  - wordpress_my3
+  # roles:
+  #   - wordpress_my1
+  tasks:
+    - name: apply common configuration to the node1
+      hosts: my_server1
+      user: cloud
+      become: yes
+      roles:
+        - { role: wordpress_my1, when: ansible_default_ipv4.address == "10.1.2.4" }
+
+    - name: apply common configuration to the node2
+      hosts: my_server2
+      user: cloud
+      become: yes
+      roles:
+        - { role: wordpress_my2, when: ansible_default_ipv4.address == "10.1.2.5" }
+
+    - name: apply common configuration to the node3
+      hosts: my_server3
+      user: cloud
+      become: yes
+      roles:
+        - { role: wordpress_my3, when: ansible_default_ipv4.address == "10.1.2.6" }
+    #  - wordpress_my3
 
 
-  roles:
-    - wordpress_my1
+  
   #  - { role: wordpress_my3, when: ansible_default_ipv4.address == "10.1.2.6" }
   #  - { role: wordpress_my2, when: ansible_default_ipv4.address == "10.1.2.5" }
