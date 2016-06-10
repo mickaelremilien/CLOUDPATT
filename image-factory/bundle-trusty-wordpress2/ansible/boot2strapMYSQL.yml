@@ -4,17 +4,17 @@
 
   tasks:
 
-    - name: apply common configuration to all nodes
+    - name: apply common configuration to the node1
       hosts: 10.1.2.4
       roles:
         - wordpress_my1
 
-    - name: apply common configuration to all nodes
+    - name: apply common configuration to the node2
       hosts: 10.1.2.5
       roles:
         - wordpress_my2
 
-    - name: apply common configuration to all nodes
+    - name: apply common configuration to the node3
       hosts: 10.1.2.6
       roles:
         - wordpress_my3
