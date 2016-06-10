@@ -349,7 +349,7 @@ Choisissez le nom, le nombre, the ficher de demarrage, et l'image de demarrage d
 
 ![etape2](img/etape2.png)
 
-Choisissez la taille de votre ou vos instance(s). 
+Choisissez la taille de votre ou vos instance(s).
 
 ![etape3](img/etape3.png)
 

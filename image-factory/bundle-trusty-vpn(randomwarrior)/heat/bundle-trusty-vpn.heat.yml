@@ -214,7 +214,7 @@ resources:
     properties:
       save_private_key: false
       name: my_key
-      
+
 outputs:
 
 

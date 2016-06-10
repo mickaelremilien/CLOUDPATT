@@ -12,7 +12,7 @@
    #"{{ lookup('file', '/home/cloud/ip_node3') }}"
 
   tasks:
-
+    - pause: minutes=3
     - name: apt-get update & upgrade
       apt:
         upgrade=full
@@ -47,6 +47,3 @@
         executable: /bin/bash
       shell: |
         sudo /etc/init.d/mysql start
-
-
-  
