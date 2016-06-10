@@ -1,6 +1,6 @@
-- hosts: local
-  user: cloud
-  sudo: true
+# - hosts: local
+#   user: cloud
+#   sudo: true
 
   # vars:
   #  wp_db_pass: "{{ lookup('file', '/home/cloud/mysqlpwd') }}"
@@ -10,39 +10,38 @@
   #  #"{{ lookup('file', '/home/cloud/ip_node2') }}"
   #  ip_node3: 10.1.2.6
   #  #"{{ lookup('file', '/home/cloud/ip_node3') }}"
+---
+- pause: minutes=2
+- name: apt-get update & upgrade
+  apt:
+    upgrade=full
+    update_cache=yes
 
-  tasks:
-    - pause: minutes=2
-    - name: apt-get update & upgrade
-      apt:
-        upgrade=full
-        update_cache=yes
+- name: packages installed
+  apt:
+    pkg={{ item }}
+    state=present
+  with_items:
+    - percona-xtradb-cluster-server
+    - python-mysqldb
 
-    - name: packages installed
-      apt:
-        pkg={{ item }}
-        state=present
-      with_items:
-        - percona-xtradb-cluster-server
-        - python-mysqldb
+- name: galera.cnf configuration
+  template:
+    src=galera.cnf
+    dest=/etc/mysql/conf.d/galera.cnf
+    owner=cloud
+    group=cloud
+    mode=0644
 
-    - name: galera.cnf configuration
-      template:
-        src=galera.cnf
-        dest=/etc/mysql/conf.d/galera.cnf
-        owner=cloud
-        group=cloud
-        mode=0644
+- name: mysql configuration binding
+  replace:
+    dest=/etc/mysql/my.cnf
+    regexp='bind-address'
+    replace='#bind-address'
 
-    - name: mysql configuration binding
-      replace:
-        dest=/etc/mysql/my.cnf
-        regexp='bind-address'
-        replace='#bind-address'
-
-    - name: first node start
-      args:
-        chdir: /home/cloud
-        executable: /bin/bash
-      shell: |
-        sudo /etc/init.d/mysql start
+- name: first node start
+  args:
+    chdir: /home/cloud
+    executable: /bin/bash
+  shell: |
+    sudo /etc/init.d/mysql start

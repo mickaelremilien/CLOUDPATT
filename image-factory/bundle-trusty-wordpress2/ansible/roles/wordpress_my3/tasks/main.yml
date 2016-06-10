@@ -1,49 +1,35 @@
-- hosts: local
-  user: cloud
-  sudo: true
+---
+- pause: minutes=3
+- name: apt-get update & upgrade
+  apt:
+    upgrade=full
+    update_cache=yes
 
-  # vars:
-  #  wp_db_pass: "{{ lookup('file', '/home/cloud/mysqlpwd') }}"
-  #  ip_node1: 10.1.2.4
-  #  #"{{ lookup('file', '/home/cloud/ip_node') }}"
-  #  ip_node2: 10.1.2.5
-  #  #"{{ lookup('file', '/home/cloud/ip_node2') }}"
-  #  ip_node3: 10.1.2.6
-  #  #"{{ lookup('file', '/home/cloud/ip_node3') }}"
+- name: packages installed
+  apt:
+    pkg={{ item }}
+    state=present
+  with_items:
+    - percona-xtradb-cluster-server
+    - python-mysqldb
 
-  tasks:
-    - pause: minutes=3
-    - name: apt-get update & upgrade
-      apt:
-        upgrade=full
-        update_cache=yes
+- name: galera.cnf configuration
+  template:
+    src=galera.cnf
+    dest=/etc/mysql/conf.d/galera.cnf
+    owner=cloud
+    group=cloud
+    mode=0644
 
-    - name: packages installed
-      apt:
-        pkg={{ item }}
-        state=present
-      with_items:
-        - percona-xtradb-cluster-server
-        - python-mysqldb
+- name: mysql configuration binding
+  replace:
+    dest=/etc/mysql/my.cnf
+    regexp='bind-address'
+    replace='#bind-address'
 
-    - name: galera.cnf configuration
-      template:
-        src=galera.cnf
-        dest=/etc/mysql/conf.d/galera.cnf
-        owner=cloud
-        group=cloud
-        mode=0644
-
-    - name: mysql configuration binding
-      replace:
-        dest=/etc/mysql/my.cnf
-        regexp='bind-address'
-        replace='#bind-address'
-
-
-    - name: first node start
-      args:
-        chdir: /home/cloud
-        executable: /bin/bash
-      shell: |
-        sudo /etc/init.d/mysql start
+- name: first node start
+  args:
+    chdir: /home/cloud
+    executable: /bin/bash
+  shell: |
+    sudo /etc/init.d/mysql start
