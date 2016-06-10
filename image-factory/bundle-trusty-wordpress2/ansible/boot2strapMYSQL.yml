@@ -8,8 +8,8 @@
     user: cloud
     become: yes
     roles:
-      - { role: wordpress_my1, when: ansible_default_ipv4.address == "10.1.2.4" }
-    #  - wordpress_my1
+      #- { role: wordpress_my1, when: ansible_default_ipv4.address == "10.1.2.4" }
+      - wordpress_my1
 
   - name: apply common configuration to the node2
     hosts: "10.1.2.5"
