@@ -2,8 +2,7 @@
   user: cloud
   become: yes
 
-  vars:
-    vpn_static:
+  tasks:
 
     - name: apply common configuration to all nodes
       hosts: 10.1.2.4
