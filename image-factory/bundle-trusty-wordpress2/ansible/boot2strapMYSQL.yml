@@ -3,7 +3,7 @@
   become: yes
 
   vars:
-    worpress_my1:
+    wordpress_my:
 
   roles:
     - wordpress_my1
