@@ -3,11 +3,11 @@
   become: yes
 
   vars:
-    worpress_my:
+    worpress_my1:
 
   roles:
     - wordpress_my1
-    
+
   # - name: apply common configuration to the node1
   #   hosts: localhost
   #   user: cloud
