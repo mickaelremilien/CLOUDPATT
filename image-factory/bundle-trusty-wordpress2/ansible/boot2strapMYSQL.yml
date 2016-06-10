@@ -4,7 +4,7 @@
 ---
 
   - name: apply common configuration to the node1
-    hosts: localhost
+    #hosts: localhost
     user: cloud
     become: yes
     roles:
@@ -12,7 +12,7 @@
     #  - wordpress_my1
 
   - name: apply common configuration to the node2
-    hosts: localhost
+    #hosts: localhost
     user: cloud
     become: yes
     roles:
@@ -21,7 +21,7 @@
 
 
   - name: apply common configuration to the node3
-    hosts: localhost
+    #hosts: localhost
     user: cloud
     become: yes
     roles:
