@@ -4,7 +4,7 @@
 ---
 
   - name: apply common configuration to the node1
-    hosts: "10.1.2.4"
+    hosts: ansible_default_ipv4.address == "10.1.2.4"
     user: cloud
     become: yes
     roles:
