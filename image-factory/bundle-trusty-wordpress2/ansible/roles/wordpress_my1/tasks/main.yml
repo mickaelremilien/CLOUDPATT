@@ -11,69 +11,68 @@
   #  #"{{ lookup('file', '/home/cloud/ip_node2') }}"
   #  ip_node3: 10.1.2.6
   #  #"{{ lookup('file', '/home/cloud/ip_node3') }}"
-tasks:
-  - name: apt-get update & upgrade
-    apt:
-      upgrade=full
-      update_cache=yes
+- name: apt-get update & upgrade
+  apt:
+    upgrade=full
+    update_cache=yes
 
-  - name: packages installed
-    apt:
-      pkg={{ item }}
-      state=present
-    with_items:
-      - percona-xtradb-cluster-server
-      - python-mysqldb
+- name: packages installed
+  apt:
+    pkg={{ item }}
+    state=present
+  with_items:
+    - percona-xtradb-cluster-server
+    - python-mysqldb
 
-  - name: galera.cnf configuration
-    template:
-      src=galera.cnf
-      dest=/etc/mysql/conf.d/galera.cnf
-      owner=cloud
-      group=cloud
-      mode=0644
+- name: galera.cnf configuration
+  template:
+    src=galera.cnf
+    dest=/etc/mysql/conf.d/galera.cnf
+    owner=cloud
+    group=cloud
+    mode=0644
 
-  - name: mysql configuration binding
-    replace:
-      dest=/etc/mysql/my.cnf
-      regexp='bind-address'
-      replace='#bind-address'
-
-
-  - name: first node start
-    args:
-      chdir: /home/cloud
-      executable: /bin/bash
-    shell: |
-      sudo /etc/init.d/mysql bootstrap-pxc
+- name: mysql configuration binding
+  replace:
+    dest=/etc/mysql/my.cnf
+    regexp='bind-address'
+    replace='#bind-address'
 
 
-  - name: mysql database is created
-    mysql_db:
-      name="wordpress"
-      state=present
+- name: first node start
+  args:
+    chdir: /home/cloud
+    executable: /bin/bash
+  shell: |
+    sudo /etc/init.d/mysql bootstrap-pxc
 
-  - name: mysql user is created
-    mysql_user:
-      name=wordpress
-      host="10.1.1.4"
-      password="{{ wp_db_pass }}"
-      priv=wordpress.*:ALL
-      state=present
 
-  - name: mysql sst_user is created
-    args:
-      chdir: /home/cloud
-      executable: /bin/bash
-    shell: |
-      mysql -u root -e "CREATE USER 'sst_user'@'localhost' IDENTIFIED BY 'sst_user';"
-      mysql -u root -e "GRANT RELOAD, LOCK TABLES, REPLICATION CLIENT ON *.* TO 'sst_user'@'localhost';"
-      mysql -u root -e "FLUSH PRIVILEGES;"
+- name: mysql database is created
+  mysql_db:
+    name="wordpress"
+    state=present
 
-  - name: mysql user2 is created
-    mysql_user:
-      name=wordpress
-      host="10.1.1.5"
-      password="{{ wp_db_pass }}"
-      priv=wordpress.*:ALL
-      state=present
+- name: mysql user is created
+  mysql_user:
+    name=wordpress
+    host="10.1.1.4"
+    password="{{ wp_db_pass }}"
+    priv=wordpress.*:ALL
+    state=present
+
+- name: mysql sst_user is created
+  args:
+    chdir: /home/cloud
+    executable: /bin/bash
+  shell: |
+    mysql -u root -e "CREATE USER 'sst_user'@'localhost' IDENTIFIED BY 'sst_user';"
+    mysql -u root -e "GRANT RELOAD, LOCK TABLES, REPLICATION CLIENT ON *.* TO 'sst_user'@'localhost';"
+    mysql -u root -e "FLUSH PRIVILEGES;"
+
+- name: mysql user2 is created
+  mysql_user:
+    name=wordpress
+    host="10.1.1.5"
+    password="{{ wp_db_pass }}"
+    priv=wordpress.*:ALL
+    state=present
