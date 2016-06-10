@@ -5,20 +5,22 @@
   tasks:
 
     - name: apply common configuration to the node1
-      hosts: "10.1.2.4"
+      #hosts: "10.1.2.4"
       roles:
         - wordpress_my1
+      when: ansible_default_ipv4.address == "10.1.2.4"
 
     - name: apply common configuration to the node2
-      hosts: "10.1.2.5"
+      #hosts: "10.1.2.5"
       roles:
         - wordpress_my2
+      when: ansible_default_ipv4.address == "10.1.2.5"
 
     - name: apply common configuration to the node3
-      hosts: "10.1.2.6"
+      #hosts: "10.1.2.6"
       roles:
         - wordpress_my3
-
+      when: ansible_default_ipv4.address == "10.1.2.6"
   #roles:
   #  - { role: wordpress_my1, when: ansible_default_ipv4.address == "10.1.2.4" }
   #  - { role: wordpress_my2, when: ansible_default_ipv4.address == "10.1.2.5" }
