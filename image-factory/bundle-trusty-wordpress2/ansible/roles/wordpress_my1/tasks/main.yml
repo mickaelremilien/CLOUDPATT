@@ -38,6 +38,12 @@
     regexp='bind-address'
     replace='#bind-address'
 
+- name: first node start
+  args:
+    chdir: /home/cloud
+    executable: /bin/bash
+  shell: |
+    sudo service mysql stop
 
 - name: first node start
   args:
@@ -69,10 +75,19 @@
     mysql -u root -e "GRANT RELOAD, LOCK TABLES, REPLICATION CLIENT ON *.* TO 'sst_user'@'localhost';"
     mysql -u root -e "FLUSH PRIVILEGES;"
 
+
 - name: mysql user2 is created
   mysql_user:
     name=wordpress
     host="10.1.1.5"
+    password="{{ wp_db_pass }}"
+    priv=wordpress.*:ALL
+    state=present
+
+- name: mysql user3 is created
+  mysql_user:
+    name=wordpress
+    host="10.1.1.6"
     password="{{ wp_db_pass }}"
     priv=wordpress.*:ALL
     state=present

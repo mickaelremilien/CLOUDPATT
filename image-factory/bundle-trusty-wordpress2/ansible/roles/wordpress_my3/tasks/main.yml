@@ -27,9 +27,16 @@
     regexp='bind-address'
     replace='#bind-address'
 
-- name: first node start
+- name: third node start
   args:
     chdir: /home/cloud
     executable: /bin/bash
   shell: |
-    sudo /etc/init.d/mysql start
+    sudo /etc/init.d/mysql restart
+
+- name: third node start
+  args:
+    chdir: /home/cloud
+    executable: /bin/bash
+  shell: |
+    sudo service mysql restart
