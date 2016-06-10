@@ -1,9 +1,0 @@
----
-wordpress_my2:
-ip_node:  "10.1.2.4"
-#"{{ lookup('file', '/home/cloud/ip_node') }}"
-ip_node2: "10.1.2.5"
-#"{{ lookup('file', '/home/cloud/ip_node2') }}"
-ip_node3: "10.1.2.6"
-#"{{ lookup('file', '/home/cloud/ip_node3') }}"
-wp_db_pass: "{{ lookup('file', '/home/cloud/mysqlpwd') }}"
