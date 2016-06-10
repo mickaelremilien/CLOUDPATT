@@ -7,8 +7,8 @@
 
   roles:
     - { role: wordpress_my1, when: ansible_default_ipv4.address == "10.1.2.4" }
-    # - { role: wordpress_my2, when: ansible_default_ipv4.address == "10.1.2.5" }
-    # - { role: wordpress_my3, when: ansible_default_ipv4.address == "10.1.2.6" }
+    - { role: wordpress_my2, when: ansible_default_ipv4.address == "10.1.2.5" }
+    - { role: wordpress_my3, when: ansible_default_ipv4.address == "10.1.2.6" }
     # - name: apply common configuration to the node1
     #   hosts: my_server1
     #   user: cloud
