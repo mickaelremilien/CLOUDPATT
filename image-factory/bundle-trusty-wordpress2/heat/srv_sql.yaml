@@ -106,12 +106,10 @@ resources:
             echo "127.0.0.1 ansible_connection=local" >> /etc/ansible/hosts
             cd /home/cloud
             echo  "$mysqlpwd$" > /home/cloud/mysqlpwd
-            echo -n "$ip_node$" >> /home/cloud/ip_node
             git clone  https://github.com/mickaelremilien/CLOUDPATT.git
             sudo ansible-playbook /home/cloud/CLOUDPATT/image-factory/bundle-trusty-wordpress2/ansible/boot2strapMYSQL.yml
           params:
             $mysqlpwd$: { get_param: themysqlpwd }
-            $ip_node$: {get_attr:  [instance, first_address]}
 
   volume:
     type: OS::Cinder::Volume
