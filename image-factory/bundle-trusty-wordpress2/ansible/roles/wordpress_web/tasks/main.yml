@@ -18,7 +18,7 @@
 
 - name: Unarchive wordpress
   unarchive:
-   src=wordpress.tar.gz
+   src=/home/cloud/wordpress.tar.gz
    dest=/home/cloud/
 
 - name: move wordpress
