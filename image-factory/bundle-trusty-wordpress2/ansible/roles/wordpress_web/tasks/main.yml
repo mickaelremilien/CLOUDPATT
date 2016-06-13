@@ -13,12 +13,12 @@
 - name: download wordpress
   get_url:
     url=http://wordpress.org/latest.tar.gz
-    dest=/home/cloud/
+    dest=/home/cloud/wordpress.tar.gz
     mode=0775
 
 - name: Unarchive wordpress
   unarchive:
-   src=latest.tar.gz
+   src=wordpress.tar.gz
    dest=home/cloud/
 
 - name: move wordpress
@@ -32,7 +32,7 @@
 - name: copy config wp
   copy:
     src=/var/www/wordpress/wp-config-sample.php
-    dest=/var/www/wp-config.php
+    dest=/var/www/wordpress/wp-config.php
     owner=www-data
     group=www-data
     mode=0705
@@ -68,6 +68,7 @@
     owner=www-data
     group=www-data
     mode=0775
+
 - name: apache site configuration
   replace:
     dest=/etc/apache2/sites-available/000-default.conf
