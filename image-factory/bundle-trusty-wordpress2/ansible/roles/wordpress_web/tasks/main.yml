@@ -6,7 +6,7 @@
   with_items:
     - apache2
     - php5
-    - libpapache2-mod-php5
+    - libapache2-mod-php5
     - php5-gd
     - php5-mysql
 
