@@ -1,49 +1,100 @@
 ---
-    - name: packages installed
-      apt:
-        pkg={{ item }}
-        state=present
-      with_items:
-        - apache2
-        - wordpress
-    - name: apache service started
-      service: name=apache2 state=started
+- name: packages installed
+  apt:
+    pkg={{ item }}
+    state=present
+  with_items:
+    - apache2
+    - php5
+    - libpapache2-mod-php5
+    - php5-gd
+    - php5-mysql
 
-    - name: apache service enabled
-      service: name=apache2 enabled=yes
+- name: download wordpress
+  get_url:
+    url=http://wordpress.org/latest.tar.gz
+    dest=/home/cloud/
+    mode=0775
 
-    - name: apache site configuration
-      copy:
-        src=wordpress.apache2.conf
-        dest=/etc/apache2/sites-available/default-wp.conf
-        owner=root
-        group=root
-        mode=0644
-      notify: enable apache site
+- name: Unarchive wordpress
+  unarchive:
+   src=latest.tar.gz
+   dest=home/cloud/
 
-    - name: wordpress site configuration
-      template:
-        src=wordpress.etc.conf
-        dest=/etc/wordpress/config-default.php
-        owner=www-data
-        group=www-data
-        mode=0644
+- name: move wordpress
+  copy:
+    src=/home/cloud/wordpress
+    dest=/var/www/
+    owner=www-data
+    group=www-data
+    mode=0705
 
-    - name: wordpress content has correct ownership
-      file:
-        path="{{ item }}"
-        state=directory
-        owner=www-data
-        group=www-data
-        recurse=yes
-      with_items:
-        - /var/lib/wordpress/wp-content
-        - /usr/share/wordpress/wp-content
+- name: copy config wp
+  copy:
+    src=/var/www/wordpress/wp-config-sample.php
+    dest=/var/www/wp-config.php
+    owner=www-data
+    group=www-data
+    mode=0705
 
-    - name: Rewrite module activated
-      apache2_module:
-        name=rewrite
-        state=present
+- name: config wordpress1
+  replace:
+    dest=/var/www/wordpress/wp-config.php
+    regexp='database_name_here'
+    replace='wordpress'
 
-    - name: apache service started
-      service: name=apache2 state=started enabled=yes
+- name: config wordpress2
+  replace:
+    dest=/var/www/wordpress/wp-config.php
+    regexp='username_here'
+    replace='wordpress'
+
+- name: config wordpress3
+  replace:
+    dest=/var/www/wordpress/wp-config.php
+    regexp='password_here'
+    replace='{{ wp_db_pass }}'
+
+- name: config wordpress4
+  replace:
+    dest=/var/www/wordpress/wp-config.php
+    regexp='localhost'
+    replace='10.1.2.4'
+
+- name: Creates directory uploads
+  file:
+    path=/var/www/wordpress/wp-content/uploads
+    state=directory
+    owner=www-data
+    group=www-data
+    mode=0775
+- name: apache site configuration
+  replace:
+    dest=/etc/apache2/sites-available/000-default.conf
+    regexp='/var/www/html/'
+    replace='/var/www/wordpress/'
+    owner=www-data
+    group=www-data
+    mode=0775
+
+- name: a2ensite 000-default.conf
+  command: a2ensite 000-default.conf
+
+# - name: wordpress content has correct ownership
+#     file:
+#       path="{{ item }}"
+#       state=directory
+#       owner=www-data
+#       group=www-data
+#       recurse=yes
+#     with_items:
+#       - /var/lib/wordpress/wp-content
+#       - /usr/share/wordpress/wp-content
+
+- name: Rewrite module activated
+  apache2_module:
+     name=rewrite
+     state=present
+
+- name: apache service started
+  service: name=apache2 state=started enabled=yes
