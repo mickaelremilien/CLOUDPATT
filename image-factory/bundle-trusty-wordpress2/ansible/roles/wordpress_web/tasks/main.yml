@@ -72,8 +72,8 @@
 - name: apache site configuration
   replace:
     dest=/etc/apache2/sites-available/000-default.conf
-    regexp='/var/www/html/'
-    replace='/var/www/wordpress/'
+    regexp='/var/www/html'
+    replace='/var/www/wordpress'
     owner=www-data
     group=www-data
     mode=0775
