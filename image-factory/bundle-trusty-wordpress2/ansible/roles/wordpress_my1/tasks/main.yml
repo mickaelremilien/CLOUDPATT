@@ -61,6 +61,22 @@
 - name: mysql user is created
   mysql_user:
     name=wordpress
+    host="10.1.1.3"
+    password="{{ wp_db_pass }}"
+    priv=wordpress.*:ALL
+    state=present
+
+- name: mysql user is created
+  mysql_user:
+    name=wordpress
+    host="10.1.2.3"
+    password="{{ wp_db_pass }}"
+    priv=wordpress.*:ALL
+    state=present
+
+- name: mysql user is created
+  mysql_user:
+    name=wordpress
     host="10.1.1.4"
     password="{{ wp_db_pass }}"
     priv=wordpress.*:ALL
