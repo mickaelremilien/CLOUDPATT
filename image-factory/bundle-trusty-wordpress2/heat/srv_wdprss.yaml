@@ -80,9 +80,9 @@ resources:
             echo "127.0.0.1 ansible_connection=local" >> /etc/ansible/hosts
             cd /home/cloud/
             git clone  https://github.com/mickaelremilien/CLOUDPATT.git
-            sudo ansible-playbook /home/cloud/CLOUDPATT/image-factory/bundle-trusty-wordpress2/ansible/seed-wdprss.yml
+            sudo ansible-playbook /home/cloud/CLOUDPATT/image-factory/bundle-trusty-wordpress2/ansible/boot2strapWORD.yml
             echo  "$mysqlpwd$" >> /home/cloud/mysqlpwd
-            echo "$sql_ip$" >> /var/log/sql_vip
+            echo "$sql_ip$" >> /home/cloud/sql_vip
           params:
             $sql_ip$: { get_param: [sql_lb_pool, vip, address]}
             $mysqlpwd$: { get_param: themysqlpwd }
