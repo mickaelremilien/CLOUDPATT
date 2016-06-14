@@ -3,7 +3,35 @@
   become: yes
 
   vars:
-    vpn_static:
+    wordpress_my1:
 
   roles:
-    - wordpress_my
+    - { role: wordpress_my1, when: ansible_default_ipv4.address == "10.1.2.4" }
+    - { role: wordpress_my2, when: ansible_default_ipv4.address == "10.1.2.5" }
+    - { role: wordpress_my3, when: ansible_default_ipv4.address == "10.1.2.6" }
+    # - name: apply common configuration to the node1
+    #   hosts: my_server1
+    #   user: cloud
+    #   become: yes
+    #   roles:
+    #     - { role: wordpress_my1, when: ansible_default_ipv4.address == "10.1.2.4" }
+    #
+    # - name: apply common configuration to the node2
+    #   hosts: my_server2
+    #   user: cloud
+    #   become: yes
+    #   roles:
+    #     - { role: wordpress_my2, when: ansible_default_ipv4.address == "10.1.2.5" }
+    #
+    # - name: apply common configuration to the node3
+    #   hosts: my_server3
+    #   user: cloud
+    #   become: yes
+    #   roles:
+    #     - { role: wordpress_my3, when: ansible_default_ipv4.address == "10.1.2.6" }
+    #  - wordpress_my3
+
+
+
+  #  - { role: wordpress_my3, when: ansible_default_ipv4.address == "10.1.2.6" }
+  #  - { role: wordpress_my2, when: ansible_default_ipv4.address == "10.1.2.5" }

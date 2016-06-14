@@ -14,13 +14,12 @@ parameters:
   keypair_name:
     type: string
     description: SSH key
-    default: mickaelfr2
+    default: mickael
 
   public_net_id:
     type: string
     description: Public network ID
-    default: b5dd7532-1533-4b9c-8bf9-e66631a9be1d
-
+    default: 6ea98324-0f14-49f6-97c0-885d1b8dc517
 
   # password:
   #   description: Basic auth password for all users

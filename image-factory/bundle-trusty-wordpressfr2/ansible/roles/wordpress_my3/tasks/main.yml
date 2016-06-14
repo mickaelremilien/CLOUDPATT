@@ -1,0 +1,42 @@
+---
+- pause: minutes=3
+- name: apt-get update & upgrade
+  apt:
+    upgrade=full
+    update_cache=yes
+
+- name: packages installed
+  apt:
+    pkg={{ item }}
+    state=present
+  with_items:
+    - percona-xtradb-cluster-server
+    - python-mysqldb
+
+- name: galera.cnf configuration
+  template:
+    src=galera.cnf
+    dest=/etc/mysql/conf.d/galera.cnf
+    owner=cloud
+    group=cloud
+    mode=0644
+
+- name: mysql configuration binding
+  replace:
+    dest=/etc/mysql/my.cnf
+    regexp='bind-address'
+    replace='#bind-address'
+
+- name: third node start
+  args:
+    chdir: /home/cloud
+    executable: /bin/bash
+  shell: |
+    sudo /etc/init.d/mysql restart
+
+- name: third node start
+  args:
+    chdir: /home/cloud
+    executable: /bin/bash
+  shell: |
+    sudo service mysql restart

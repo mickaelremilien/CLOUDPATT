@@ -22,7 +22,7 @@ parameters:
   key_name:
     type: string
     description: SSH key
-    default: mickaelfr2
+    default: mickael
 
   volume_size:
     type: number
@@ -107,7 +107,7 @@ resources:
             cd /home/cloud
             echo  "$mysqlpwd$" > /home/cloud/mysqlpwd
             git clone  https://github.com/mickaelremilien/CLOUDPATT.git
-            sudo ansible-playbook /home/cloud/CLOUDPATT/image-factory/bundle-trusty-wordpressfr2/ansible/boot2strapMYSQL.yml
+            sudo ansible-playbook /home/cloud/CLOUDPATT/image-factory/bundle-trusty-wordpressfr1/ansible/boot2strapMYSQL.yml
             sudo rm -Rf /home/cloud/CLOUDPATT
             sudo rm /home/cloud/mysqlpwd
           params:

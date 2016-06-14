@@ -1,0 +1,8 @@
+# the mysql servers
+
+[my_server1]
+mys1
+[my_server2]
+mys2
+[my_server3]
+mys3

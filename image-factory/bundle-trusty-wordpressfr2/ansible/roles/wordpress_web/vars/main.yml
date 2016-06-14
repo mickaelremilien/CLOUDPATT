@@ -1,0 +1,5 @@
+---
+wordpress_web:
+wp_db_name: wordpress
+wp_db_pass: "{{ lookup('file', '/home/cloud/mysqlpwd') }}"
+wp_mysql_lb: "{{ lookup('file', '/home/cloud/sql_vip') }}"

@@ -1,0 +1,18 @@
+[mysqld]
+#mysql settings
+query_cache_size=0
+query_cache_type=0
+#bind-address=0.0.0.0
+#galera settings
+#wsrep_provider=/usr/lib/galera/libgalera_smm.so
+
+default-storage-engine=innodb
+innodb_autoinc_lock_mode=2
+innodb_locks_unsafe_for_binlog=1
+wsrep_provider=/usr/lib/libgalera_smm.so
+wsrep_cluster_address=gcomm://10.1.2.4,10.1.2.5,10.1.2.6
+# Node
+wsrep_node_address={{ansible_default_ipv4.address}}
+wsrep_sst_method=xtrabackup
+wsrep_cluster_name=mycluster
+wsrep_sst_auth="sst_user:sst_user"
