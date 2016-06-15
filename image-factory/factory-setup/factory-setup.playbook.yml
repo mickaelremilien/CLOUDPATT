@@ -1,30 +1,45 @@
-- hosts: local
-  remote_user: cloud
+---
+#
+##
+### Written by the CAT (Cloudwatt Automation Team)
+##
+#
+- hosts: all
   become: yes
 
   vars:
-    jenkins_url: "http://127.0.0.1:8080"
+    os_image_factory:
+      packer:
+        version: "0.8.6"
+        zip_url: "https://releases.hashicorp.com/packer/0.8.6/packer_0.8.6_linux_amd64.zip"
+      jenkins:
+        local_url: "http://127.0.0.1:8080"
+        repository: "deb http://pkg.jenkins-ci.org/debian binary/"
+        repo_key: "http://pkg.jenkins-ci.org/debian/jenkins-ci.org.key"
 
   tasks:
+    - name: toolkit packages present
+      apt: pkg="{{ item }}" state=present
+      with_items:
+        - aptitude
+        - git
+        - python-dev
+        - python-setuptools
+
+    - name: apt package pip is absent
+      apt: pkg=python-pip state=absent purge=yes
+
+    - name: system upgrade
+      apt: update_cache=yes upgrade=full
+
     - name: jenkins key server is known
-      apt_key:
-        url="http://pkg.jenkins-ci.org/debian/jenkins-ci.org.key"
-        state=present
+      apt_key: url="{{ os_image_factory.jenkins.repo_key }}" state=present
 
     - name: jenkins apt server is known
-      apt_repository:
-        repo="deb http://pkg.jenkins-ci.org/debian binary/"
-        state=present
+      apt_repository: repo="{{ os_image_factory.jenkins.repository }}" state=present
 
-    - name: apt cache is up-to-date
-      apt:
-        update_cache=yes
-        cache_valid_time=1
-
-    - name: packages installed
-      apt:
-        pkg="{{ item }}"
-        state=present
+    - name: needed packages installed
+      apt: update_cache=yes pkg="{{ item }}" state=present
       with_items:
         - libguestfs-tools
         - libffi-dev
@@ -32,23 +47,12 @@
         - libssl-dev
         - jenkins
         - unzip
-        - emacs
-      register: result
-      until: result|success
-      retries: 10
-      delay: 2
+
+    - name: jenkins service is up
+      service: name=jenkins state=restarted enabled=yes
 
     - name: jenkins is kvm member
-      user:
-        name=jenkins
-        groups=kvm
-        append=yes
-
-    - name: jenkins is started
-      service: name=jenkins state=restarted
-
-    - name: jenkins is enabled
-      service: name=jenkins enabled=yes
+      user: name=jenkins groups=kvm append=yes
 
     - name: common aliases
       copy:
@@ -58,7 +62,36 @@
         group=root
         mode=0644
 
-    - name: packer dest directory ready
+    - name: default sh is bash
+      file: src=/bin/bash dest=/bin/sh state=link
+
+    - name: check packer is installed
+      stat: path=/usr/local/bin/packer
+      register: packer_bin_check
+
+    - name: setting fact packer_installed
+      set_fact:
+        packer_installed="{{ packer_bin_check.stat.exists }}"
+
+    - name: checking installed packer version
+      when: packer_installed
+      shell: "/usr/local/bin/packer --version"
+      ignore_errors: true
+      register: packer_version
+
+    - name: setting fact need_to_install_packer
+      set_fact:
+        need_to_install_packer="{{ (not packer_installed) or (packer_version.stdout != os_image_factory.packer.version) }}"
+
+    - name: packer download
+      when: need_to_install_packer
+      get_url:
+        url="{{ os_image_factory.packer.zip_url }}"
+        dest=/tmp/packer.zip
+        force=no
+
+    - name: packer destination directory is ready
+      when: need_to_install_packer
       file:
         path=/usr/local/bin
         state=directory
@@ -66,18 +99,8 @@
         group=staff
         mode=0755
 
-    - name: packer download
-      get_url:
-        url="https://dl.bintray.com/mitchellh/packer/packer_0.8.6_linux_amd64.zip"
-        dest=/tmp/packer.zip
-        force=no
-
-    - name: check packer is installed
-      stat: path=/usr/local/bin/packer
-      register: packer_bin_check
-
     - name: unzip packer
-      when: not packer_bin_check.stat.exists
+      when: need_to_install_packer
       unarchive:
         src=/tmp/packer.zip
         dest=/usr/local/bin
@@ -86,44 +109,56 @@
         group=staff
         mode=0755
 
-    - name: default sh is bash
-      file:
-        src=/bin/bash
-        dest=/bin/sh
-        state=link
+    - name: pip is installed
+      easy_install: name=pip
 
-    - name: pip packages installed
-      pip:
-        name="{{ item }}"
-        state=latest
+    - name: openstack CLI is installed
+      pip: name="{{ item }}" state=latest
       with_items:
-        - python-glanceclient
-        - python-novaclient
-        - python-neutronclient
-        - python-heatclient
-        - python-openstackclient
-        - python-cinderclient
+        - pyopenssl
+        - ndg-httpsclient
+        - pyasn1
+        - pip
+      register: result
+      until: result|success
+      retries: 3
+      delay: 2
+
+    - name: openstack CLI is installed
+      pip: name="{{ item.name }}" version="{{ item.version }}"
+      with_items:
+        - { name: os-client-config, version: 1.7.5 }
+        - { name: python-glanceclient, version: 1.1.0 }
+        - { name: python-novaclient, version: 2.30.0 }
+        - { name: python-keystoneclient, version: 1.7.1 }
+        - { name: python-neutronclient, version: 3.1.0 }
+        - { name: python-heatclient, version: 0.6.0 }
+        - { name: python-openstackclient, version: 1.7.0 }
+        - { name: python-cinderclient, version: 1.4.0 }
+        - { name: python-swiftclient, version: 2.5.0 }
+      register: result
+      until: result|success
+      retries: 3
+      delay: 2
 
     - name: download jenkins CLI jar file
       get_url:
-        url="{{ jenkins_url }}/jnlpJars/jenkins-cli.jar"
+        url="{{ os_image_factory.jenkins.local_url }}/jnlpJars/jenkins-cli.jar"
         dest=/root/jenkins-cli.jar
         force=no
       register: cli_download
       until: cli_download|success
-      retries: 6
-      delay: 5
+      retries: 10
+      delay: 6
 
     - name: get jenkins plugin list
-      shell: "java -jar /root/jenkins-cli.jar -s {{ jenkins_url }} list-plugins | grep -e ')$' | awk '{ print $1 }' | tr \"\n\" \" \""
-      register: list_plugins_output
+      shell: "java -jar /root/jenkins-cli.jar -s {{ os_image_factory.jenkins.local_url }} list-plugins | grep -e ')$' | awk '{ print $1 }' | tr \"\n\" \" \""
+      register: jenkins_plugins
 
-    - name: update jenkins
-      when: list_plugins_output.stdout
-      shell: "java -jar /root/jenkins-cli.jar -s {{ jenkins_url }} install-plugin {{ list_plugins_output.stdout }}"
+    - name: install jenkins git plugin and update all installed plugins
+      when: jenkins_plugins.stdout
+      shell: "java -jar /root/jenkins-cli.jar -s {{ os_image_factory.jenkins.local_url }} install-plugin {{ jenkins_plugins.stdout }} git-client git"
 
-    - name: install jenkins git plugin
-      shell: "java -jar /root/jenkins-cli.jar -s {{ jenkins_url }} install-plugin git-client git"
-
-    - name: restart jenkins
-      shell: "java -jar /root/jenkins-cli.jar -s {{ jenkins_url }} safe-restart"
+    - name: safe-restart jenkins to apply plugins updates
+      shell: "java -jar /root/jenkins-cli.jar -s {{ os_image_factory.jenkins.local_url }} safe-restart"
+Status API Training Shop Blog About

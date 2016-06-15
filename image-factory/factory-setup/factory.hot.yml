@@ -1,16 +1,20 @@
+#
+##
+### Written by the CAT (Cloudwatt Automation Team)
+##
+#
 heat_template_version: 2013-05-23
 
-
 description: Openstack Image Factory
-
 
 parameters:
   keypair_name:
     description: Keypair to inject in instances
     type: string
-
+    default: mickael
+    
   image_id:
-    default: "168f7c6b-20a6-4a4e-8052-d1200aa36a1e"
+    default: "060a3341-36b8-4b25-8d02-c9f0d925427e"
     description: Image ID of the system (default is Cloudwatt's Debian Jessie)
     type: string
 
@@ -35,6 +39,7 @@ parameters:
         - n1.cw.highmem-8
         - n1.cw.highmem-12
 
+
 resources:
   dmz:
     type: OS::Neutron::Net
@@ -47,6 +52,20 @@ resources:
       cidr: 10.42.42.0/24
       allocation_pools:
         - { start: 10.42.42.100, end: 10.42.42.199 }
+
+  router:
+    type: OS::Neutron::Router
+    properties:
+      admin_state_up: true
+      external_gateway_info:
+        enable_snat: true
+        network: "public"
+
+  router_interface:
+    type: OS::Neutron::RouterInterface
+    properties:
+      router_id: { get_resource : router }
+      subnet_id: { get_resource : dmz_subnet }
 
   sg:
     type: OS::Neutron::SecurityGroup
@@ -62,6 +81,59 @@ resources:
     properties:
       floating_network_id: 6ea98324-0f14-49f6-97c0-885d1b8dc517
 
+  system_bootstrap:
+    type: OS::Heat::SoftwareConfig
+    properties:
+      config: |
+        #!/bin/bash
+        export DEBIAN_FRONTEND=noninteractive
+        apt-get update
+        apt-get -o Dpkg::Options::="--force-confold" upgrade -y
+        apt-get -o Dpkg::Options::="--force-confold" remove python-pip --purge -y
+        apt-get -o Dpkg::Options::="--force-confold" install aptitude git python-dev python-setuptools build-essential -y
+        for i in 1 2 3 4 5; do easy_install pip && break || sleep 2; done
+        pip install -U pyopenssl ndg-httpsclient pyasn1
+        pip install -U pip ansible
+        mkdir /etc/ansible
+        echo -e "[local]\n127.0.0.1 ansible_connection=local ansible_ssh_user=cloud" > /etc/ansible/hosts
+        git clone https://github.com/cloudwatt/os_image_factory.git /root/os_image_factory
+        /usr/local/bin/ansible-playbook /root/os_image_factory/setup/os_image_factory.playbook.yml -vvv > /var/log/os_image_factory.setup.log 2>&1
+  jenkins_profile:
+    type: OS::Heat::CloudConfig
+    properties:
+      cloud_config:
+        write_files:
+          - path: /var/lib/jenkins/.profile
+            permissions: '0644'
+            owner: jenkins:jenkins
+            content:
+              str_replace:
+                template: |
+                  # Set with your own tenant values
+                  export OS_USERNAME=""
+                  export OS_TENANT_NAME=""
+                  export OS_TENANT_ID=""
+                  export OS_PASSWORD=""
+                  export OS_REGION_NAME="fr1"
+                  export OS_AUTH_URL="https://identity.fr1.cloudwatt.com/v2.0"
+                  export FACTORY_NETWORK_ID=$network_id$
+                  export FACTORY_SECURITY_GROUP_ID=$security_group_id$
+                  if [ ! -z "$OS_USERNAME" -a ! -z "$OS_PASSWORD" ]; then
+                    if [ ! -z "$OS_TENANT_NAME" -a ! -z "$OS_TENANT_ID" ]; then
+                      export FACTORY_SECURITY_GROUP_NAME="$(neutron security-group-show $FACTORY_SECURITY_GROUP_ID | grep name | cut -d"|" -f3 | tr -d " ")"
+                    fi
+                  fi
+                params:
+                  $network_id$: { get_resource: dmz }
+                  $security_group_id$: { get_resource: sg }
+
+  init_server:
+    type: OS::Heat::MultipartMime
+    properties:
+      parts:
+      - config: { get_resource: system_bootstrap }
+      - config: { get_resource: jenkins_profile }
+
   server:
     type: OS::Nova::Server
     properties:
@@ -74,32 +146,8 @@ resources:
         - { get_resource: sg }
       user_data_format: RAW
       user_data:
-        str_replace:
-          template: |
-            #!/bin/bash
-            export DEBIAN_FRONTEND=noninteractive
+        get_resource: init_server
 
-            apt-get update
-            apt-get -o Dpkg::Options::="--force-confold" upgrade -y
-            apt-get -o Dpkg::Options::="--force-confold"remove python-pip --purge -y
-            apt-get -o Dpkg::Options::="--force-confold" install aptitude git python-dev python-setuptools -y
-
-            for i in 1 2 3 4 5; do easy_install pip && break || sleep 2; done
-            pip install -U pip ansible
-            mkdir /etc/ansible
-
-            echo "[local]"                             > /etc/ansible/hosts
-            echo "127.0.0.1 ansible_connection=local" >> /etc/ansible/hosts
-
-            echo "export FACTORY_NETWORK_ID=$network_id$"                > /etc/profile.d/factory_os_env.sh
-            echo "export FACTORY_SECURITY_GROUP_ID=$security_group_id$" >> /etc/profile.d/factory_os_env.sh
-
-            git clone https://aurelien_maury@bitbucket.org/aurelien_maury/image-factory.git /root/image-factory
-            ansible-playbook /root/image-factory/factory-setup/factory-setup.playbook.yml -vvv > /root/setup-factory.playbook.log 2>&1
-
-          params:
-            $network_id$: { get_resource: dmz }
-            $security_group_id$: { get_resource: sg }
 
   factory_internet_surface:
     type: OS::Nova::FloatingIPAssociation

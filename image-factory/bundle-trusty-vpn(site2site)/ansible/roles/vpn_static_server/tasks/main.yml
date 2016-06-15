@@ -336,7 +336,7 @@
     executable: /bin/bash
   shell: |
     sudo route del -net {{client_cidr}} netmask 255.255.255.0 gw {{server_cidr_gw_df}}
-    scp -oStricthostkeychecking=no -oIdentityFile=/home/cloud/.ssh/my_key3.pem /etc/openvpn/configclient.tar.gz cloud@"{{ip_client}}":/etc/openvpn/
+    sudo scp -oStricthostkeychecking=no -oIdentityFile=/home/cloud/.ssh/my_key3.pem /etc/openvpn/configclient.tar.gz cloud@"{{ip_client}}":/etc/openvpn/
     sudo service openvpn restart
 
 - name: iptablenat
